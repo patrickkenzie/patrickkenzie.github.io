@@ -8693,15 +8693,16 @@ var _user$project$Players$allPlayers = {
 		}
 	}
 };
-var _user$project$Players$sortPlayers = function (players) {
-	return A2(
-		_elm_lang$core$List$sortBy,
-		function (_) {
-			return _.lastName;
-		},
-		_user$project$Players$allPlayers);
-};
-var _user$project$Players$players = _user$project$Players$sortPlayers(_user$project$Players$allPlayers);
+var _user$project$Players$sortPlayers = F2(
+	function (sorter, players) {
+		return A2(_elm_lang$core$List$sortBy, sorter, _user$project$Players$allPlayers);
+	});
+var _user$project$Players$players = A2(
+	_user$project$Players$sortPlayers,
+	function (_) {
+		return _.lastName;
+	},
+	_user$project$Players$allPlayers);
 var _user$project$Teams$teams = {
 	ctor: '::',
 	_0: {
@@ -8794,7 +8795,18 @@ var _user$project$Main$segment = F3(
 						_0: _elm_lang$html$Html$text(title),
 						_1: {ctor: '[]'}
 					}),
-				_1: list
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('content'),
+							_1: {ctor: '[]'}
+						},
+						list),
+					_1: {ctor: '[]'}
+				}
 			});
 	});
 var _user$project$Main$viewDraftedPlayer = function (playerInfo) {
@@ -8843,7 +8855,7 @@ var _user$project$Main$viewPlayerList = F3(
 		return A3(
 			_user$project$Main$segment,
 			title,
-			'',
+			'undrafted',
 			{
 				ctor: '::',
 				_0: A2(
@@ -9052,7 +9064,7 @@ var _user$project$Main$viewWaitingTeams = function (teams) {
 	return A3(
 		_user$project$Main$segment,
 		title,
-		'',
+		'current',
 		{ctor: '::', _0: currentTeam, _1: upNext});
 };
 var _user$project$Main$viewTeamsWithLatest = F2(
@@ -9100,7 +9112,7 @@ var _user$project$Main$viewTeamsWithLatest = F2(
 		return A3(
 			_user$project$Main$segment,
 			title,
-			'',
+			'latest',
 			{
 				ctor: '::',
 				_0: A2(
@@ -9113,16 +9125,27 @@ var _user$project$Main$viewTeamsWithLatest = F2(
 var _user$project$Main$viewDraftHistory = function (model) {
 	return {
 		ctor: '::',
-		_0: A3(_user$project$Main$viewPlayerList, 'Draft History', _user$project$Main$viewDraftedPlayer, model.draftedPlayers),
-		_1: {
-			ctor: '::',
-			_0: A3(
-				_user$project$Main$viewPlayerList,
-				'Draft Order',
-				_user$project$Main$viewDraftedPlayer,
-				_elm_lang$core$List$reverse(model.draftedPlayers)),
-			_1: {ctor: '[]'}
-		}
+		_0: A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$id('historyView'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A3(_user$project$Main$viewPlayerList, 'Draft History', _user$project$Main$viewDraftedPlayer, model.draftedPlayers),
+				_1: {
+					ctor: '::',
+					_0: A3(
+						_user$project$Main$viewPlayerList,
+						'Draft Order',
+						_user$project$Main$viewDraftedPlayer,
+						_elm_lang$core$List$reverse(model.draftedPlayers)),
+					_1: {ctor: '[]'}
+				}
+			}),
+		_1: {ctor: '[]'}
 	};
 };
 var _user$project$Main$viewDraftComplete = function (model) {
@@ -9293,12 +9316,21 @@ var _user$project$Main$update = F2(
 				return _user$project$Main$popHistory(model.history);
 			case 'Reset':
 				return _user$project$Main$initModel;
-			default:
+			case 'ChangeView':
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{currentView: _p17._0});
+			default:
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						undraftedPlayers: A2(_elm_lang$core$List$sortWith, _p17._0, model.undraftedPlayers)
+					});
 		}
 	});
+var _user$project$Main$ResortPlayers = function (a) {
+	return {ctor: 'ResortPlayers', _0: a};
+};
 var _user$project$Main$ChangeView = function (a) {
 	return {ctor: 'ChangeView', _0: a};
 };
@@ -9428,10 +9460,7 @@ var _user$project$Main$viewDraftInProgress = function (model) {
 	};
 };
 var _user$project$Main$viewDraftContent = function (model) {
-	return _elm_lang$core$List$isEmpty(model.undraftedPlayers) ? _user$project$Main$viewDraftComplete(model) : A2(
-		_elm_lang$core$Basics_ops['++'],
-		_user$project$Main$viewDraftInProgress(model),
-		_user$project$Main$viewDraftHistory(model));
+	return _elm_lang$core$List$isEmpty(model.undraftedPlayers) ? _user$project$Main$viewDraftComplete(model) : _user$project$Main$viewDraftInProgress(model);
 };
 var _user$project$Main$viewTabContent = function (model) {
 	var _p18 = model.currentView;
