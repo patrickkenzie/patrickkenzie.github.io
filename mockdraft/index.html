@@ -9148,25 +9148,6 @@ var _user$project$Main$viewDraftHistory = function (model) {
 		_1: {ctor: '[]'}
 	};
 };
-var _user$project$Main$viewDraftComplete = function (model) {
-	var teams = A2(_elm_lang$core$Basics_ops['++'], model.draftedTeams, model.waitingTeams);
-	var teamDisplay = A2(
-		_elm_lang$core$List$map,
-		_user$project$Main$viewTeamWithRoster(true),
-		teams);
-	return {
-		ctor: '::',
-		_0: A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$id('draftResults'),
-				_1: {ctor: '[]'}
-			},
-			teamDisplay),
-		_1: {ctor: '[]'}
-	};
-};
 var _user$project$Main$styles = A3(
 	_elm_lang$html$Html$node,
 	'link',
@@ -9483,6 +9464,52 @@ var _user$project$Main$viewTabNav = function (currentView) {
 		});
 };
 var _user$project$Main$Reset = {ctor: 'Reset'};
+var _user$project$Main$viewDraftComplete = function (model) {
+	var restartButton = A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('restartDraft'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$button,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Reset),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Restart Draft'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		});
+	var teams = A2(_elm_lang$core$Basics_ops['++'], model.draftedTeams, model.waitingTeams);
+	var teamDisplay = A2(
+		_elm_lang$core$List$map,
+		_user$project$Main$viewTeamWithRoster(true),
+		teams);
+	return {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$id('draftResults'),
+				_1: {ctor: '[]'}
+			},
+			teamDisplay),
+		_1: {
+			ctor: '::',
+			_0: restartButton,
+			_1: {ctor: '[]'}
+		}
+	};
+};
 var _user$project$Main$UndoRound = {ctor: 'UndoRound'};
 var _user$project$Main$FlipOrder = {ctor: 'FlipOrder'};
 var _user$project$Main$title = A2(
