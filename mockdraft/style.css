@@ -1,0 +1,173 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    line-height: 1.5;
+    font-family: Roboto,sans-serif;
+    font-weight: 400;
+    color: rgba(0,0,0,.87);
+}
+
+h1, h2, h3 {
+    margin: 0 0 0.5em;
+    border-bottom: solid 1px black;
+    text-align: center;
+}
+
+h3 {
+    font-weight: normal;
+    margin: 1em 0em;
+}
+
+h1 {
+    background-color: lightgrey;
+    margin-bottom: 0;
+}
+
+h1 > div button {
+    display: none;
+    vertical-align: middle;
+}
+
+h1 > div {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 150px;
+    min-height: 80px;
+}
+
+h1 > div:hover button {
+    display: inline-block;
+    margin: 10px;
+}
+
+ul, li.team {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+ol {
+    margin: 0;
+    padding: 0 1em;
+}
+
+.nav {
+    text-align: center;
+    background-color: lightgrey;
+    padding-top: 1em;
+    margin-bottom: 2em;
+}
+
+.nav > div {
+    text-align: center;
+    font-size: 1.2em;
+    padding: 0.2em 1em;
+    min-width: 15em;
+    cursor: pointer;
+    display: inline-block;
+    background-color: lightgrey;
+    border-radius: 5px 5px 0 0;
+}
+
+.nav > div.active, .nav > div:hover {
+    background-color: white;
+}
+
+.nav > div:hover {
+    border-style: none solid;
+    border-size: 1px;
+    border-color: lightgrey;
+}
+
+
+.upcoming .team:first-of-type h3 {
+    font-weight: bold;
+}
+
+.team li {
+    margin: 0;
+    padding: 0;
+}
+
+.players .female, .players .male, dd {
+    margin-bottom: 10px;
+    padding: 2px 5px;
+    border: solid 1px grey;
+    font-size: 0.8em;
+    border-radius: 5px;
+}
+
+.players .draftable {
+    padding: 10px;
+    font-weight: bold;
+    font-size: 1em;
+    border-color: black;
+    list-style-type: none;
+    user-select: none;
+}
+
+.male {
+    background-color: #95d4e6;
+}
+
+.female {
+    background-color: #ffccf9;
+}
+
+.draftable:hover {
+    background-color: #95e6a9;
+    cursor: pointer;
+}
+
+dt {
+    margin-bottom: 1em;
+}
+
+.segment {
+    min-width: 250px;
+    max-width: 400px;
+    display: inline-block;
+    vertical-align: top;
+    //margin: 0 1em;
+    padding: 0 1em;
+
+    max-height: 700px;
+    overflow: auto;
+}
+
+#draftResults > div {
+    width: 12.5%;
+    display: inline-block;
+    padding: 10px;
+    vertical-align:top;
+}
+
+.stat {
+    font-size: 0.75em;
+    font-weight: normal;
+    text-align: right;
+    display: block;
+}
+
+.stat:after {
+    content: " ";
+    clear:both;
+}
+
+.gm {
+    font-size: 0.75em;
+}
+
+@media (max-width: 800px) {
+    .segment {
+        width: 50%;
+        max-width: 50%;
+    }
+
+    #draftResults > div {
+        width: 25%;
+    }
+}
