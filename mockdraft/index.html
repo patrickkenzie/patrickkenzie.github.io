@@ -8855,7 +8855,7 @@ var _user$project$Main$viewPlayerList = F3(
 		return A3(
 			_user$project$Main$segment,
 			title,
-			'undrafted',
+			'',
 			{
 				ctor: '::',
 				_0: A2(
@@ -8961,7 +8961,7 @@ var _user$project$Main$viewTeamWithRoster = F2(
 		};
 		var start = _p1._0;
 		var end = _p1._1;
-		var viewPlayerList = A2(
+		var viewPlayers = A2(
 			_elm_lang$core$List$map,
 			A2(
 				_user$project$Main$viewPlayerDetail,
@@ -8989,7 +8989,7 @@ var _user$project$Main$viewTeamWithRoster = F2(
 								_0: _elm_lang$html$Html_Attributes$class('players'),
 								_1: {ctor: '[]'}
 							},
-							viewPlayerList),
+							viewPlayers),
 						_1: {ctor: '[]'}
 					},
 					end)
@@ -9089,7 +9089,7 @@ var _user$project$Main$viewTeamsWithLatest = F2(
 					_1: {ctor: '[]'}
 				});
 		};
-		var viewPlayerList = function (team) {
+		var viewPlayers = function (team) {
 			var _p6 = _elm_lang$core$List$head(team.players);
 			if (_p6.ctor === 'Just') {
 				return A2(
@@ -9108,7 +9108,7 @@ var _user$project$Main$viewTeamsWithLatest = F2(
 				return _elm_lang$html$Html$text(title);
 			}
 		};
-		var teamList = A2(_elm_lang$core$List$map, viewPlayerList, teams);
+		var teamList = A2(_elm_lang$core$List$map, viewPlayers, teams);
 		return A3(
 			_user$project$Main$segment,
 			title,
@@ -9214,6 +9214,20 @@ var _user$project$Main$updateRound = F2(
 			}
 		}();
 		return _elm_lang$core$List$isEmpty(waiting) ? {ctor: '_Tuple2', _0: drafted, _1: waiting} : {ctor: '_Tuple2', _0: waiting, _1: drafted};
+	});
+var _user$project$Main$compareByDesc = F3(
+	function (sort, x, y) {
+		return A2(
+			_elm_lang$core$Basics$compare,
+			sort(y),
+			sort(x));
+	});
+var _user$project$Main$compareByAsc = F3(
+	function (sort, x, y) {
+		return A2(
+			_elm_lang$core$Basics$compare,
+			sort(x),
+			sort(y));
 	});
 var _user$project$Main$Model = F7(
 	function (a, b, c, d, e, f, g) {
@@ -9331,6 +9345,97 @@ var _user$project$Main$update = F2(
 var _user$project$Main$ResortPlayers = function (a) {
 	return {ctor: 'ResortPlayers', _0: a};
 };
+var _user$project$Main$viewPlayerSortMenu = function () {
+	var sortable = F2(
+		function (compare, label) {
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$a,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(
+								_user$project$Main$ResortPlayers(
+									_user$project$Main$compareByDesc(compare))),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(' ▼ '),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(
+									_user$project$Main$ResortPlayers(
+										_user$project$Main$compareByAsc(compare))),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(' ▲ '),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(label),
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		});
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('playerSort'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				sortable,
+				function (_) {
+					return _.lastName;
+				},
+				'Last Name'),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					sortable,
+					function (_) {
+						return _.firstName;
+					},
+					'First Name'),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						sortable,
+						function (_) {
+							return _.height;
+						},
+						'Height'),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							sortable,
+							function (_) {
+								return _.rating;
+							},
+							'Rating'),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+}();
 var _user$project$Main$ChangeView = function (a) {
 	return {ctor: 'ChangeView', _0: a};
 };
@@ -9444,13 +9549,80 @@ var _user$project$Main$draftablePlayer = function (player) {
 		true,
 		player);
 };
+var _user$project$Main$viewUndraftedPlayerList = function (list) {
+	var header = A2(
+		_elm_lang$html$Html$h2,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$span,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$id('playerSortHeader'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Sorting'),
+					_1: {
+						ctor: '::',
+						_0: _user$project$Main$viewPlayerSortMenu,
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Players'),
+				_1: {ctor: '[]'}
+			}
+		});
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('segment'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('undrafted'),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: header,
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('content'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$ol,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('players'),
+								_1: {ctor: '[]'}
+							},
+							A2(_elm_lang$core$List$map, _user$project$Main$draftablePlayer, list)),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
 var _user$project$Main$viewDraftInProgress = function (model) {
 	return {
 		ctor: '::',
 		_0: _user$project$Main$viewWaitingTeams(model.waitingTeams),
 		_1: {
 			ctor: '::',
-			_0: A3(_user$project$Main$viewPlayerList, 'Players', _user$project$Main$draftablePlayer, model.undraftedPlayers),
+			_0: _user$project$Main$viewUndraftedPlayerList(model.undraftedPlayers),
 			_1: {
 				ctor: '::',
 				_0: A2(_user$project$Main$viewTeamsWithLatest, model.round, model.draftedTeams),
