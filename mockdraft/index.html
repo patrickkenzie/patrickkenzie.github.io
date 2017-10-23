@@ -8703,61 +8703,69 @@ var _user$project$Players$players = A2(
 		return _.lastName;
 	},
 	_user$project$Players$allPlayers);
-var _user$project$Teams$teams = {
+var _user$project$Teams$allTeams = {
 	ctor: '::',
 	_0: {
 		gm: 'Alessandro Colantonio',
 		name: '',
-		players: {ctor: '[]'}
+		players: {ctor: '[]'},
+		draftOrder: 2
 	},
 	_1: {
 		ctor: '::',
 		_0: {
 			gm: 'Brian Kells',
 			name: '',
-			players: {ctor: '[]'}
+			players: {ctor: '[]'},
+			draftOrder: 1
 		},
 		_1: {
 			ctor: '::',
 			_0: {
 				gm: 'Cassie Berquist',
 				name: '',
-				players: {ctor: '[]'}
+				players: {ctor: '[]'},
+				draftOrder: 0
 			},
 			_1: {
 				ctor: '::',
 				_0: {
 					gm: 'Christopher Keates',
 					name: '',
-					players: {ctor: '[]'}
+					players: {ctor: '[]'},
+					draftOrder: 3
 				},
 				_1: {
 					ctor: '::',
 					_0: {
 						gm: 'Chris Sullivan',
 						name: '',
-						players: {ctor: '[]'}
+						players: {ctor: '[]'},
+						draftOrder: 4
 					},
 					_1: {
 						ctor: '::',
 						_0: {
 							gm: 'Jessie Robinson',
 							name: '',
-							players: {ctor: '[]'}
+							players: {ctor: '[]'},
+							draftOrder: 5
 						},
 						_1: {
 							ctor: '::',
 							_0: {
 								gm: 'Mehmet Karman',
 								name: '',
-								players: {ctor: '[]'}
+								players: {ctor: '[]'},
+								draftOrder: 6
 							},
 							_1: {
 								ctor: '::',
 								_0: {
 									gm: 'Travis Davidson',
 									name: '',
-									players: {ctor: '[]'}
+									players: {ctor: '[]'},
+									draftOrder: 7
 								},
 								_1: {ctor: '[]'}
 							}
@@ -8768,9 +8776,18 @@ var _user$project$Teams$teams = {
 		}
 	}
 };
-var _user$project$Teams$Team = F3(
-	function (a, b, c) {
-		return {gm: a, name: b, players: c};
+var _user$project$Teams$sortedTeams = function (teams) {
+	return A2(
+		_elm_lang$core$List$sortBy,
+		function (_) {
+			return _.draftOrder;
+		},
+		teams);
+};
+var _user$project$Teams$teams = _user$project$Teams$sortedTeams(_user$project$Teams$allTeams);
+var _user$project$Teams$Team = F4(
+	function (a, b, c, d) {
+		return {gm: a, name: b, players: c, draftOrder: d};
 	});
 var _user$project$Main$segment = F3(
 	function (title, className, list) {
@@ -9196,6 +9213,44 @@ var _user$project$Main$updateRound = F2(
 		}();
 		return _elm_lang$core$List$isEmpty(waiting) ? {ctor: '_Tuple2', _0: drafted, _1: waiting} : {ctor: '_Tuple2', _0: waiting, _1: drafted};
 	});
+var _user$project$Main$moveTeamDown = F2(
+	function (team, model) {
+		var update = F2(
+			function (i, t) {
+				return _elm_lang$core$Native_Utils.eq(i, team.draftOrder + 1) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder - 1}) : (_elm_lang$core$Native_Utils.eq(i, team.draftOrder) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder + 1}) : t);
+			});
+		var teams = model.waitingTeams;
+		var updatedTeams = A2(_elm_lang$core$List$indexedMap, update, teams);
+		return _elm_lang$core$Native_Utils.eq(
+			team.draftOrder,
+			_elm_lang$core$List$length(model.waitingTeams)) ? model : _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
+			});
+	});
+var _user$project$Main$moveTeamUp = F2(
+	function (team, model) {
+		var update = F2(
+			function (i, t) {
+				return _elm_lang$core$Native_Utils.eq(i, team.draftOrder - 1) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder + 1}) : (_elm_lang$core$Native_Utils.eq(i, team.draftOrder) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder - 1}) : t);
+			});
+		var teams = model.waitingTeams;
+		var updatedTeams = A2(_elm_lang$core$List$indexedMap, update, teams);
+		return _elm_lang$core$Native_Utils.eq(team.draftOrder, 0) ? model : _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
+			});
+	});
 var _user$project$Main$compareByDesc = F3(
 	function (sort, x, y) {
 		return A2(
@@ -9315,14 +9370,24 @@ var _user$project$Main$update = F2(
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{currentView: _p17._0});
-			default:
+			case 'ResortPlayers':
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{
 						undraftedPlayers: A2(_elm_lang$core$List$sortWith, _p17._0, model.undraftedPlayers)
 					});
+			case 'MoveTeamUp':
+				return A2(_user$project$Main$moveTeamUp, _p17._0, model);
+			default:
+				return A2(_user$project$Main$moveTeamDown, _p17._0, model);
 		}
 	});
+var _user$project$Main$MoveTeamDown = function (a) {
+	return {ctor: 'MoveTeamDown', _0: a};
+};
+var _user$project$Main$MoveTeamUp = function (a) {
+	return {ctor: 'MoveTeamUp', _0: a};
+};
 var _user$project$Main$ResortPlayers = function (a) {
 	return {ctor: 'ResortPlayers', _0: a};
 };
@@ -9488,8 +9553,52 @@ var _user$project$Main$viewDraftComplete = function (model) {
 				}),
 			_1: {ctor: '[]'}
 		});
+	var swap = function (team) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(_user$project$Main$viewTeamWithRoster, true, team),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$button,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(
+								_user$project$Main$MoveTeamUp(team)),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('[up]'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(
+									_user$project$Main$MoveTeamDown(team)),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('[down]'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	};
 	var teams = A2(_elm_lang$core$Basics_ops['++'], model.draftedTeams, model.waitingTeams);
-	var teamDisplay = A2(
+	var teamDisplay = _elm_lang$core$Native_Utils.eq(
+		_elm_lang$core$List$length(model.draftedPlayers),
+		0) ? A2(_elm_lang$core$List$map, swap, teams) : A2(
 		_elm_lang$core$List$map,
 		_user$project$Main$viewTeamWithRoster(true),
 		teams);
