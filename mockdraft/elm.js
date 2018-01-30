@@ -8783,7 +8783,7 @@ var _user$project$Teams$allTeams = {
 						_1: {
 							ctor: '::',
 							_0: {
-								gm: 'Heather Godding',
+								gm: 'Heather Wallace',
 								name: '',
 								players: {ctor: '[]'},
 								draftOrder: 6
@@ -9380,6 +9380,26 @@ var _user$project$Main$initModel = {
 	round: 1,
 	currentView: 0
 };
+var _user$project$Main$resetDraft = function (model) {
+	var resetRoster = function (team) {
+		return _elm_lang$core$Native_Utils.update(
+			team,
+			{
+				players: {ctor: '[]'}
+			});
+	};
+	var teams = _user$project$Teams$sortedTeams(
+		A2(
+			_elm_lang$core$List$map,
+			resetRoster,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$List$reverse(model.draftedTeams),
+				model.waitingTeams)));
+	return _elm_lang$core$Native_Utils.update(
+		_user$project$Main$initModel,
+		{waitingTeams: teams});
+};
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var newModel = function () {
@@ -9396,7 +9416,7 @@ var _user$project$Main$update = F2(
 				case 'UndoDraft':
 					return _user$project$Main$undo(model);
 				case 'Reset':
-					return _user$project$Main$initModel;
+					return _user$project$Main$resetDraft(model);
 				case 'ChangeView':
 					return _elm_lang$core$Native_Utils.update(
 						model,
@@ -9734,7 +9754,10 @@ var _user$project$Main$viewDraftComplete = function (model) {
 				}
 			});
 	};
-	var teams = A2(_elm_lang$core$Basics_ops['++'], model.draftedTeams, model.waitingTeams);
+	var teams = A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$List$reverse(model.draftedTeams),
+		model.waitingTeams);
 	var teamDisplay = _elm_lang$core$Native_Utils.eq(
 		_elm_lang$core$List$length(model.draftedPlayers),
 		0) ? A2(_elm_lang$core$List$map, swap, teams) : A2(
