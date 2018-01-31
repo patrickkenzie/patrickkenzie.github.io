@@ -8424,7 +8424,7 @@ var _user$project$Players$allPlayers = {
 																																	_0: {firstName: 'Tim', lastName: 'Kealey', gender: 'Male', rating: 6},
 																																	_1: {
 																																		ctor: '::',
-																																		_0: {firstName: 'Christopher', lastName: 'Keates', gender: 'Male', rating: 8},
+																																		_0: {firstName: 'Chris', lastName: 'Keates', gender: 'Male', rating: 8},
 																																		_1: {
 																																			ctor: '::',
 																																			_0: {firstName: 'Brian', lastName: 'Kells', gender: 'Male', rating: 8},
@@ -8751,7 +8751,7 @@ var _user$project$Teams$allTeams = {
 		_1: {
 			ctor: '::',
 			_0: {
-				gm: 'Christopher Keates',
+				gm: 'Chris Keates',
 				name: '',
 				players: {ctor: '[]'},
 				draftOrder: 2
