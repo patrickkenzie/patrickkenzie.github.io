@@ -2,11 +2,18 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height:100%;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     line-height: 1.5;
     font-family: Roboto,sans-serif;
     font-weight: 400;
     color: rgba(0,0,0,.87);
+    position: relative;
 }
 
 h1, h2, h3 {
@@ -17,7 +24,6 @@ h1, h2, h3 {
 
 h3 {
     font-weight: normal;
-    margin: 1em 0em;
 }
 
 h1 {
@@ -25,18 +31,37 @@ h1 {
     margin-bottom: 0;
 }
 
-h1 > div button {
-    display: block;
-    margin: 8px 10px;
-    float: right;
-    clear: right;
-    padding: 5px 10px;
+#menuButton {
+    position: absolute;
+    top: 0.5em;
+    left: 0.5em;
+    z-index: 20;
 }
 
-h1 > div {
+#menuBackdrop {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 5;
+    background: rgb(0, 0, 0, 0.2);
+}
+
+#menu {
+    position: absolute;
+    left: 0;
+    width: 25%;
+    border-right: solid thin grey;
+    top: 0;
+    bottom: 0;
+    background-color: lightgrey;
+    z-index: 10;
+}
+
+#menu button {
+    width: 90%;
+    margin: 1em 5%;
 }
 
 ul, li.team {
@@ -54,18 +79,22 @@ ol {
     text-align: center;
     background-color: lightgrey;
     padding-top: 1em;
-    margin-bottom: 2em;
+    margin-bottom: 1em;
 }
 
 .nav > div {
     text-align: center;
     font-size: 1.2em;
     padding: 0.2em 1em;
+    margin: 0 0.1em;
     min-width: 15em;
     cursor: pointer;
     display: inline-block;
     background-color: lightgrey;
     border-radius: 5px 5px 0 0;
+    border-style: dotted;
+    border-color: grey;
+    border-width: thin thin 0;
 }
 
 .nav > div.active, .nav > div:hover {
@@ -76,11 +105,6 @@ ol {
     border-style: none solid;
     border-size: 1px;
     border-color: lightgrey;
-}
-
-
-.upcoming .team:first-of-type h3 {
-    font-weight: bold;
 }
 
 .team li {
@@ -126,9 +150,15 @@ dt {
     text-align:center;
 }
 
-.restartDraft button {
+button {
+    border: solid thin lightgrey;
     padding: 0.5em;
     cursor: pointer;
+}
+
+button:hover {
+    background-color: rgb(0, 0, 0, 0.05);
+    border-color: grey;
 }
 
 .segment {
@@ -152,11 +182,24 @@ dt {
     margin: 0 5%;
 }
 
-#draftResults > div {
-    width: 12.5%;
-    display: inline-block;
-    padding: 10px;
-    vertical-align:top;
+#draftResults {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+#draftResults .team {
+    flex-basis: 20%;
+    padding: 1em;
+}
+
+#preDraft {
+    max-width: 30em;
+    margin: auto;
+}
+
+#preDraft li {
+    font-size: x-large;
 }
 
 .stat {
@@ -229,4 +272,9 @@ a {
     #draftResults > div {
         width: 25%;
     }
+}
+
+.currentTeam {
+    font-weight: bold;
+    font-size: larger;
 }

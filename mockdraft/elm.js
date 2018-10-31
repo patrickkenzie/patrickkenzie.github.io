@@ -5730,6 +5730,126 @@ var _elm_lang$core$Json_Decode$bool = _elm_lang$core$Native_Json.decodePrimitive
 var _elm_lang$core$Json_Decode$string = _elm_lang$core$Native_Json.decodePrimitive('string');
 var _elm_lang$core$Json_Decode$Decoder = {ctor: 'Decoder'};
 
+//import Maybe, Native.List //
+
+var _elm_lang$core$Native_Regex = function() {
+
+function escape(str)
+{
+	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+function caseInsensitive(re)
+{
+	return new RegExp(re.source, 'gi');
+}
+function regex(raw)
+{
+	return new RegExp(raw, 'g');
+}
+
+function contains(re, string)
+{
+	return string.match(re) !== null;
+}
+
+function find(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var out = [];
+	var number = 0;
+	var string = str;
+	var lastIndex = re.lastIndex;
+	var prevLastIndex = -1;
+	var result;
+	while (number++ < n && (result = re.exec(string)))
+	{
+		if (prevLastIndex === re.lastIndex) break;
+		var i = result.length - 1;
+		var subs = new Array(i);
+		while (i > 0)
+		{
+			var submatch = result[i];
+			subs[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		out.push({
+			match: result[0],
+			submatches: _elm_lang$core$Native_List.fromArray(subs),
+			index: result.index,
+			number: number
+		});
+		prevLastIndex = re.lastIndex;
+	}
+	re.lastIndex = lastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+function replace(n, re, replacer, string)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var count = 0;
+	function jsReplacer(match)
+	{
+		if (count++ >= n)
+		{
+			return match;
+		}
+		var i = arguments.length - 3;
+		var submatches = new Array(i);
+		while (i > 0)
+		{
+			var submatch = arguments[i];
+			submatches[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		return replacer({
+			match: match,
+			submatches: _elm_lang$core$Native_List.fromArray(submatches),
+			index: arguments[arguments.length - 2],
+			number: count
+		});
+	}
+	return string.replace(re, jsReplacer);
+}
+
+function split(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	if (n === Infinity)
+	{
+		return _elm_lang$core$Native_List.fromArray(str.split(re));
+	}
+	var string = str;
+	var result;
+	var out = [];
+	var start = re.lastIndex;
+	var restoreLastIndex = re.lastIndex;
+	while (n--)
+	{
+		if (!(result = re.exec(string))) break;
+		out.push(string.slice(start, result.index));
+		start = re.lastIndex;
+	}
+	out.push(string.slice(start));
+	re.lastIndex = restoreLastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+return {
+	regex: regex,
+	caseInsensitive: caseInsensitive,
+	escape: escape,
+
+	contains: F2(contains),
+	find: F3(find),
+	replace: F4(replace),
+	split: F3(split)
+};
+
+}();
+
 var _elm_lang$core$Tuple$mapSecond = F2(
 	function (func, _p0) {
 		var _p1 = _p0;
@@ -5756,6 +5876,23 @@ var _elm_lang$core$Tuple$first = function (_p6) {
 	var _p7 = _p6;
 	return _p7._0;
 };
+
+var _elm_lang$core$Regex$split = _elm_lang$core$Native_Regex.split;
+var _elm_lang$core$Regex$replace = _elm_lang$core$Native_Regex.replace;
+var _elm_lang$core$Regex$find = _elm_lang$core$Native_Regex.find;
+var _elm_lang$core$Regex$contains = _elm_lang$core$Native_Regex.contains;
+var _elm_lang$core$Regex$caseInsensitive = _elm_lang$core$Native_Regex.caseInsensitive;
+var _elm_lang$core$Regex$regex = _elm_lang$core$Native_Regex.regex;
+var _elm_lang$core$Regex$escape = _elm_lang$core$Native_Regex.escape;
+var _elm_lang$core$Regex$Match = F4(
+	function (a, b, c, d) {
+		return {match: a, submatches: b, index: c, number: d};
+	});
+var _elm_lang$core$Regex$Regex = {ctor: 'Regex'};
+var _elm_lang$core$Regex$AtMost = function (a) {
+	return {ctor: 'AtMost', _0: a};
+};
+var _elm_lang$core$Regex$All = {ctor: 'All'};
 
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
@@ -8260,6 +8397,455 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _ericgj$elm_csv_decode$Csv_Decode$listFindOk = F2(
+	function (fn, list) {
+		listFindOk:
+		while (true) {
+			var _p0 = list;
+			if (_p0.ctor === '[]') {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				var _p1 = fn(_p0._0);
+				if (_p1.ctor === 'Ok') {
+					return _elm_lang$core$Maybe$Just(
+						_elm_lang$core$Result$Ok(_p1._0));
+				} else {
+					var _v2 = fn,
+						_v3 = _p0._1;
+					fn = _v2;
+					list = _v3;
+					continue listFindOk;
+				}
+			}
+		}
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$listFind = F2(
+	function (pred, list) {
+		listFind:
+		while (true) {
+			var _p2 = list;
+			if (_p2.ctor === '[]') {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				var _p3 = _p2._0;
+				if (pred(_p3)) {
+					return _elm_lang$core$Maybe$Just(_p3);
+				} else {
+					var _v5 = pred,
+						_v6 = _p2._1;
+					pred = _v5;
+					list = _v6;
+					continue listFind;
+				}
+			}
+		}
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$sequenceResultsAccumErrs = function (list) {
+	var accum = F2(
+		function (next, _p4) {
+			var _p5 = _p4;
+			var _p7 = _p5._0;
+			var _p6 = {ctor: '_Tuple2', _0: next, _1: _p5._1};
+			if (_p6._0.ctor === 'Ok') {
+				if (_p6._1.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _p7 - 1,
+						_1: _elm_lang$core$Result$Ok(
+							{ctor: '::', _0: _p6._0._0, _1: _p6._1._0})
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _p7 - 1,
+						_1: _elm_lang$core$Result$Err(_p6._1._0)
+					};
+				}
+			} else {
+				if (_p6._1.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _p7 - 1,
+						_1: _elm_lang$core$Result$Err(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: _p7, _1: _p6._0._0},
+								_1: {ctor: '[]'}
+							})
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _p7 - 1,
+						_1: _elm_lang$core$Result$Err(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: _p7, _1: _p6._0._0},
+								_1: _p6._1._0
+							})
+					};
+				}
+			}
+		});
+	return _elm_lang$core$Tuple$second(
+		A3(
+			_elm_lang$core$List$foldr,
+			accum,
+			{
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$List$length(list) - 1,
+				_1: _elm_lang$core$Result$Ok(
+					{ctor: '[]'})
+			},
+			list));
+};
+var _ericgj$elm_csv_decode$Csv_Decode$maybe = F2(
+	function (fn, s) {
+		return _elm_lang$core$Native_Utils.eq(s, '') ? _elm_lang$core$Result$Ok(_elm_lang$core$Maybe$Nothing) : A2(
+			_elm_lang$core$Result$map,
+			_elm_lang$core$Maybe$Just,
+			fn(s));
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$mapHelp = F2(
+	function (fn, _p8) {
+		var _p9 = _p8;
+		return {
+			visited: _p9.visited,
+			unvisited: _p9.unvisited,
+			value: fn(_p9.value)
+		};
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$decodeRecord = F3(
+	function (_p10, headers, record) {
+		var _p11 = _p10;
+		return A2(
+			_elm_lang$core$Result$map,
+			function (_) {
+				return _.value;
+			},
+			_p11._0(
+				{
+					visited: {ctor: '[]'},
+					unvisited: A3(
+						_elm_lang$core$List$map2,
+						F2(
+							function (v0, v1) {
+								return {ctor: '_Tuple2', _0: v0, _1: v1};
+							}),
+						headers,
+						record),
+					value: _elm_lang$core$Basics$identity
+				}));
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$Csv = F2(
+	function (a, b) {
+		return {headers: a, records: b};
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$State = F3(
+	function (a, b, c) {
+		return {visited: a, unvisited: b, value: c};
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$Decoder = function (a) {
+	return {ctor: 'Decoder', _0: a};
+};
+var _ericgj$elm_csv_decode$Csv_Decode$next = function (fn) {
+	return _ericgj$elm_csv_decode$Csv_Decode$Decoder(
+		function (_p12) {
+			var _p13 = _p12;
+			var _p14 = _p13.unvisited;
+			if (_p14.ctor === '[]') {
+				return _elm_lang$core$Result$Err('Past the end of the record');
+			} else {
+				var _p16 = _p14._0._1;
+				var _p15 = fn(_p16);
+				if (_p15.ctor === 'Ok') {
+					return _elm_lang$core$Result$Ok(
+						A3(
+							_ericgj$elm_csv_decode$Csv_Decode$State,
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: _p14._0._0, _1: _p16},
+								_1: _p13.visited
+							},
+							_p14._1,
+							_p13.value(_p15._0)));
+				} else {
+					return _elm_lang$core$Result$Err(_p15._0);
+				}
+			}
+		});
+};
+var _ericgj$elm_csv_decode$Csv_Decode$field = F2(
+	function (name, fn) {
+		return _ericgj$elm_csv_decode$Csv_Decode$Decoder(
+			function (_p17) {
+				var _p18 = _p17;
+				var _p23 = _p18.unvisited;
+				var _p21 = A2(
+					_ericgj$elm_csv_decode$Csv_Decode$listFind,
+					function (_p19) {
+						var _p20 = _p19;
+						return _elm_lang$core$Native_Utils.eq(_p20._0, name);
+					},
+					_p23);
+				if (_p21.ctor === 'Nothing') {
+					return _elm_lang$core$Result$Err(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'No field named \'',
+							A2(_elm_lang$core$Basics_ops['++'], name, '\' found')));
+				} else {
+					var _p22 = fn(_p21._0._1);
+					if (_p22.ctor === 'Ok') {
+						return _elm_lang$core$Result$Ok(
+							A3(
+								_ericgj$elm_csv_decode$Csv_Decode$State,
+								_p18.visited,
+								_p23,
+								_p18.value(_p22._0)));
+					} else {
+						return _elm_lang$core$Result$Err(_p22._0);
+					}
+				}
+			});
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$assertNext = function (expected) {
+	return _ericgj$elm_csv_decode$Csv_Decode$Decoder(
+		function (_p24) {
+			var _p25 = _p24;
+			var _p26 = _p25.unvisited;
+			if (_p26.ctor === '[]') {
+				return _elm_lang$core$Result$Err('Past the end of the record');
+			} else {
+				var _p27 = _p26._0._1;
+				return _elm_lang$core$Native_Utils.eq(_p27, expected) ? _elm_lang$core$Result$Ok(
+					A3(
+						_ericgj$elm_csv_decode$Csv_Decode$State,
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: _p26._0._0, _1: _p27},
+							_1: _p25.visited
+						},
+						_p26._1,
+						_p25.value)) : _elm_lang$core$Result$Err(
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						'Expected \'',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							expected,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'\', was \'',
+								A2(_elm_lang$core$Basics_ops['++'], _p27, '\'')))));
+			}
+		});
+};
+var _ericgj$elm_csv_decode$Csv_Decode$assertField = F2(
+	function (name, expected) {
+		return _ericgj$elm_csv_decode$Csv_Decode$Decoder(
+			function (_p28) {
+				var _p29 = _p28;
+				var _p34 = _p29.unvisited;
+				var _p32 = A2(
+					_ericgj$elm_csv_decode$Csv_Decode$listFind,
+					function (_p30) {
+						var _p31 = _p30;
+						return _elm_lang$core$Native_Utils.eq(_p31._0, name);
+					},
+					_p34);
+				if (_p32.ctor === 'Nothing') {
+					return _elm_lang$core$Result$Err(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'No field named \'',
+							A2(_elm_lang$core$Basics_ops['++'], name, '\' found')));
+				} else {
+					var _p33 = _p32._0._1;
+					return _elm_lang$core$Native_Utils.eq(_p33, expected) ? _elm_lang$core$Result$Ok(
+						A3(_ericgj$elm_csv_decode$Csv_Decode$State, _p29.visited, _p34, _p29.value)) : _elm_lang$core$Result$Err(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Expected \'',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								expected,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'\', was \'',
+									A2(_elm_lang$core$Basics_ops['++'], _p33, '\'')))));
+				}
+			});
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$andMap = F2(
+	function (_p36, _p35) {
+		var _p37 = _p36;
+		var _p38 = _p35;
+		return _ericgj$elm_csv_decode$Csv_Decode$Decoder(
+			function (state) {
+				return A2(
+					_elm_lang$core$Result$andThen,
+					_p37._0,
+					_p38._0(state));
+			});
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$oneOf = function (decoders) {
+	return _ericgj$elm_csv_decode$Csv_Decode$Decoder(
+		function (state) {
+			return A2(
+				_elm_lang$core$Maybe$withDefault,
+				_elm_lang$core$Result$Err('No decoders succeeded'),
+				A2(
+					_ericgj$elm_csv_decode$Csv_Decode$listFindOk,
+					function (_p39) {
+						var _p40 = _p39;
+						return _p40._0(state);
+					},
+					decoders));
+		});
+};
+var _ericgj$elm_csv_decode$Csv_Decode$map = F2(
+	function (subValue, _p41) {
+		var _p42 = _p41;
+		return _ericgj$elm_csv_decode$Csv_Decode$Decoder(
+			function (_p43) {
+				var _p44 = _p43;
+				return A2(
+					_elm_lang$core$Result$map,
+					_ericgj$elm_csv_decode$Csv_Decode$mapHelp(_p44.value),
+					_p42._0(
+						{visited: _p44.visited, unvisited: _p44.unvisited, value: subValue}));
+			});
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$DecodeErrors = function (a) {
+	return {ctor: 'DecodeErrors', _0: a};
+};
+var _ericgj$elm_csv_decode$Csv_Decode$decodeCsv = F2(
+	function (decoder, _p45) {
+		var _p46 = _p45;
+		return A2(
+			_elm_lang$core$Result$mapError,
+			_ericgj$elm_csv_decode$Csv_Decode$DecodeErrors,
+			_ericgj$elm_csv_decode$Csv_Decode$sequenceResultsAccumErrs(
+				A2(
+					_elm_lang$core$List$map,
+					A2(_ericgj$elm_csv_decode$Csv_Decode$decodeRecord, decoder, _p46.headers),
+					_p46.records)));
+	});
+var _ericgj$elm_csv_decode$Csv_Decode$CsvErrors = function (a) {
+	return {ctor: 'CsvErrors', _0: a};
+};
+var _ericgj$elm_csv_decode$Csv_Decode$decode = function (decoder) {
+	return function (_p47) {
+		return A2(
+			_elm_lang$core$Result$andThen,
+			_ericgj$elm_csv_decode$Csv_Decode$decodeCsv(decoder),
+			A2(_elm_lang$core$Result$mapError, _ericgj$elm_csv_decode$Csv_Decode$CsvErrors, _p47));
+	};
+};
+
+var _lovasoa$elm_csv$Helper$parseRemaining = F4(
+	function (separator, quoted, remaining, done) {
+		parseRemaining:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.eq(remaining, '')) {
+				return done;
+			} else {
+				if ((!_elm_lang$core$Native_Utils.eq(separator, '')) && ((!quoted) && A2(_elm_lang$core$String$startsWith, separator, remaining))) {
+					var nextChars = A2(
+						_elm_lang$core$String$dropLeft,
+						_elm_lang$core$String$length(separator),
+						remaining);
+					var newQuoted = false;
+					var _v0 = separator,
+						_v1 = false,
+						_v2 = nextChars,
+						_v3 = {ctor: '::', _0: '', _1: done};
+					separator = _v0;
+					quoted = _v1;
+					remaining = _v2;
+					done = _v3;
+					continue parseRemaining;
+				} else {
+					var nextNextChar = A3(_elm_lang$core$String$slice, 1, 2, remaining);
+					var nextChar = A3(_elm_lang$core$String$slice, 0, 1, remaining);
+					var isEscapedQuote = (!quoted) && ((_elm_lang$core$Native_Utils.eq(nextChar, '\\') || _elm_lang$core$Native_Utils.eq(nextChar, '\"')) && _elm_lang$core$Native_Utils.eq(nextNextChar, '\"'));
+					var nextChars = A2(
+						_elm_lang$core$String$dropLeft,
+						isEscapedQuote ? 2 : 1,
+						remaining);
+					var endQuote = quoted && (_elm_lang$core$Native_Utils.eq(nextChar, '\"') && (!isEscapedQuote));
+					var others = A2(
+						_elm_lang$core$Maybe$withDefault,
+						{ctor: '[]'},
+						_elm_lang$core$List$tail(done));
+					var current = A2(
+						_elm_lang$core$Maybe$withDefault,
+						'',
+						_elm_lang$core$List$head(done));
+					var startQuote = _elm_lang$core$Native_Utils.eq(nextChar, '\"') && ((!_elm_lang$core$Native_Utils.eq(nextNextChar, '\"')) && _elm_lang$core$Native_Utils.eq(current, ''));
+					var newQuoted = (quoted && (!endQuote)) || startQuote;
+					var newChar = isEscapedQuote ? '\"' : ((startQuote || endQuote) ? '' : nextChar);
+					var newDone = {
+						ctor: '::',
+						_0: A2(_elm_lang$core$Basics_ops['++'], current, newChar),
+						_1: others
+					};
+					var _v4 = separator,
+						_v5 = newQuoted,
+						_v6 = nextChars,
+						_v7 = newDone;
+					separator = _v4;
+					quoted = _v5;
+					remaining = _v6;
+					done = _v7;
+					continue parseRemaining;
+				}
+			}
+		}
+	});
+var _lovasoa$elm_csv$Helper$splitLineWith = F2(
+	function (separator, line) {
+		return _elm_lang$core$List$reverse(
+			A4(
+				_lovasoa$elm_csv$Helper$parseRemaining,
+				separator,
+				false,
+				line,
+				{ctor: '[]'}));
+	});
+var _lovasoa$elm_csv$Helper$splitLine = _lovasoa$elm_csv$Helper$splitLineWith(',');
+
+var _lovasoa$elm_csv$Csv$splitWith = F2(
+	function (separator, lines) {
+		var values = A2(
+			_elm_lang$core$List$filter,
+			function (x) {
+				return !_elm_lang$core$String$isEmpty(x);
+			},
+			_elm_lang$core$String$lines(lines));
+		return A2(
+			_elm_lang$core$List$map,
+			_lovasoa$elm_csv$Helper$splitLineWith(separator),
+			values);
+	});
+var _lovasoa$elm_csv$Csv$split = _lovasoa$elm_csv$Csv$splitWith(',');
+var _lovasoa$elm_csv$Csv$parseWith = F2(
+	function (separator, lines) {
+		var values = A2(_lovasoa$elm_csv$Csv$splitWith, separator, lines);
+		var headers = A2(
+			_elm_lang$core$Maybe$withDefault,
+			{ctor: '[]'},
+			_elm_lang$core$List$head(values));
+		var records = A2(_elm_lang$core$List$drop, 1, values);
+		return {headers: headers, records: records};
+	});
+var _lovasoa$elm_csv$Csv$parse = _lovasoa$elm_csv$Csv$parseWith(',');
+var _lovasoa$elm_csv$Csv$Csv = F2(
+	function (a, b) {
+		return {headers: a, records: b};
+	});
+
 var _user$project$Format$chunksOfRight = F2(
 	function (k, s) {
 		var k2 = 2 * k;
@@ -8323,401 +8909,50 @@ var _user$project$Format$formatHeight = function (value) {
 			A2(_elm_lang$core$Basics_ops['++'], ' ', inchesDisplay)));
 };
 
-var _user$project$Players$allPlayers = {
-	ctor: '::',
-	_0: {firstName: 'Nicholas', lastName: 'Aghajanian', gender: 'Male', rating: 7},
-	_1: {
-		ctor: '::',
-		_0: {firstName: 'Nick', lastName: 'Amlin', gender: 'Male', rating: 6},
-		_1: {
-			ctor: '::',
-			_0: {firstName: 'Craig', lastName: 'Anderson', gender: 'Male', rating: 8},
-			_1: {
-				ctor: '::',
-				_0: {firstName: 'Kevin', lastName: 'Barford', gender: 'Male', rating: 6},
-				_1: {
-					ctor: '::',
-					_0: {firstName: 'Sebastien', lastName: 'Belanger', gender: 'Male', rating: 6},
-					_1: {
-						ctor: '::',
-						_0: {firstName: 'Simon', lastName: 'Berry', gender: 'Male', rating: 5},
-						_1: {
-							ctor: '::',
-							_0: {firstName: 'Shubho Bo', lastName: 'Biswas', gender: 'Male', rating: 7},
-							_1: {
-								ctor: '::',
-								_0: {firstName: 'Lance', lastName: 'Blackstock', gender: 'Male', rating: 10},
-								_1: {
-									ctor: '::',
-									_0: {firstName: 'Ryan', lastName: 'Briggs', gender: 'Male', rating: 8},
-									_1: {
-										ctor: '::',
-										_0: {firstName: 'Graham', lastName: 'Brown', gender: 'Male', rating: 5},
-										_1: {
-											ctor: '::',
-											_0: {firstName: 'Frederic', lastName: 'Caron', gender: 'Male', rating: 9},
-											_1: {
-												ctor: '::',
-												_0: {firstName: 'Christopher', lastName: 'Castonguay', gender: 'Male', rating: 7},
-												_1: {
-													ctor: '::',
-													_0: {firstName: 'Jonathan', lastName: 'Champagne', gender: 'Male', rating: 5},
-													_1: {
-														ctor: '::',
-														_0: {firstName: 'Wing-Leung', lastName: 'Chan', gender: 'Male', rating: 6},
-														_1: {
-															ctor: '::',
-															_0: {firstName: 'Marc', lastName: 'Charette', gender: 'Male', rating: 4},
-															_1: {
-																ctor: '::',
-																_0: {firstName: 'Kelsey', lastName: 'Charie', gender: 'Male', rating: 7},
-																_1: {
-																	ctor: '::',
-																	_0: {firstName: 'Martin', lastName: 'Cloake', gender: 'Male', rating: 9},
-																	_1: {
-																		ctor: '::',
-																		_0: {firstName: 'Stephen', lastName: 'Close', gender: 'Male', rating: 7},
-																		_1: {
-																			ctor: '::',
-																			_0: {firstName: 'Michael', lastName: 'Colantonio', gender: 'Male', rating: 6},
-																			_1: {
-																				ctor: '::',
-																				_0: {firstName: 'Alessandro', lastName: 'Colantonio', gender: 'Male', rating: 7},
-																				_1: {
-																					ctor: '::',
-																					_0: {firstName: 'Ben', lastName: 'Curran', gender: 'Male', rating: 5},
-																					_1: {
-																						ctor: '::',
-																						_0: {firstName: 'Micheal', lastName: 'Davidson', gender: 'Male', rating: 3},
-																						_1: {
-																							ctor: '::',
-																							_0: {firstName: 'Jason', lastName: 'Fraser', gender: 'Male', rating: 6},
-																							_1: {
-																								ctor: '::',
-																								_0: {firstName: 'Allan', lastName: 'Godding', gender: 'Male', rating: 6},
-																								_1: {
-																									ctor: '::',
-																									_0: {firstName: 'Richard', lastName: 'Gregory', gender: 'Male', rating: 6},
-																									_1: {
-																										ctor: '::',
-																										_0: {firstName: 'John', lastName: 'Haig', gender: 'Male', rating: 7},
-																										_1: {
-																											ctor: '::',
-																											_0: {firstName: 'Scott', lastName: 'Higgins', gender: 'Male', rating: 7},
-																											_1: {
-																												ctor: '::',
-																												_0: {firstName: 'Derek', lastName: 'Hodgson', gender: 'Male', rating: 8},
-																												_1: {
-																													ctor: '::',
-																													_0: {firstName: 'Craig', lastName: 'Holden', gender: 'Male', rating: 6},
-																													_1: {
-																														ctor: '::',
-																														_0: {firstName: 'Jeff', lastName: 'Hunt', gender: 'Male', rating: 6},
-																														_1: {
-																															ctor: '::',
-																															_0: {firstName: 'Rob', lastName: 'Ives', gender: 'Male', rating: 7},
-																															_1: {
-																																ctor: '::',
-																																_0: {firstName: 'Mehmet', lastName: 'Karman', gender: 'Male', rating: 7},
-																																_1: {
-																																	ctor: '::',
-																																	_0: {firstName: 'Tim', lastName: 'Kealey', gender: 'Male', rating: 6},
-																																	_1: {
-																																		ctor: '::',
-																																		_0: {firstName: 'Chris', lastName: 'Keates', gender: 'Male', rating: 8},
-																																		_1: {
-																																			ctor: '::',
-																																			_0: {firstName: 'Brian', lastName: 'Kells', gender: 'Male', rating: 8},
-																																			_1: {
-																																				ctor: '::',
-																																				_0: {firstName: 'Patrick', lastName: 'Kenzie', gender: 'Male', rating: 6},
-																																				_1: {
-																																					ctor: '::',
-																																					_0: {firstName: 'Nick', lastName: 'Klimowicz', gender: 'Male', rating: 6},
-																																					_1: {
-																																						ctor: '::',
-																																						_0: {firstName: 'Mike', lastName: 'Lee', gender: 'Male', rating: 10},
-																																						_1: {
-																																							ctor: '::',
-																																							_0: {firstName: 'Ken', lastName: 'Maclean', gender: 'Male', rating: 8},
-																																							_1: {
-																																								ctor: '::',
-																																								_0: {firstName: 'Hadrian', lastName: 'Mertins-Kirkwood', gender: 'Male', rating: 8},
-																																								_1: {
-																																									ctor: '::',
-																																									_0: {firstName: 'Tom', lastName: 'Newman', gender: 'Male', rating: 8},
-																																									_1: {
-																																										ctor: '::',
-																																										_0: {firstName: 'David', lastName: 'O\'Connor', gender: 'Male', rating: 6},
-																																										_1: {
-																																											ctor: '::',
-																																											_0: {firstName: 'Brian', lastName: 'Perry', gender: 'Male', rating: 7},
-																																											_1: {
-																																												ctor: '::',
-																																												_0: {firstName: 'Jonathan', lastName: 'Pindur', gender: 'Male', rating: 7},
-																																												_1: {
-																																													ctor: '::',
-																																													_0: {firstName: 'Benjamin', lastName: 'Piper', gender: 'Male', rating: 7},
-																																													_1: {
-																																														ctor: '::',
-																																														_0: {firstName: 'Greg', lastName: 'Probe', gender: 'Male', rating: 7},
-																																														_1: {
-																																															ctor: '::',
-																																															_0: {firstName: 'Will', lastName: 'Reid', gender: 'Male', rating: 6},
-																																															_1: {
-																																																ctor: '::',
-																																																_0: {firstName: 'Jim', lastName: 'Robinson', gender: 'Male', rating: 6},
-																																																_1: {
-																																																	ctor: '::',
-																																																	_0: {firstName: 'Jon', lastName: 'Rowe', gender: 'Male', rating: 6},
-																																																	_1: {
-																																																		ctor: '::',
-																																																		_0: {firstName: 'Thomas', lastName: 'Sattolo', gender: 'Male', rating: 5},
-																																																		_1: {
-																																																			ctor: '::',
-																																																			_0: {firstName: 'Matthew', lastName: 'Schijns', gender: 'Male', rating: 5},
-																																																			_1: {
-																																																				ctor: '::',
-																																																				_0: {firstName: 'Andre', lastName: 'Scott', gender: 'Male', rating: 5},
-																																																				_1: {
-																																																					ctor: '::',
-																																																					_0: {firstName: 'Geofford', lastName: 'Seaborn', gender: 'Male', rating: 8},
-																																																					_1: {
-																																																						ctor: '::',
-																																																						_0: {firstName: 'Andrew', lastName: 'Spearin', gender: 'Male', rating: 6},
-																																																						_1: {
-																																																							ctor: '::',
-																																																							_0: {firstName: 'Trevor', lastName: 'Stocki', gender: 'Male', rating: 6},
-																																																							_1: {
-																																																								ctor: '::',
-																																																								_0: {firstName: 'Chris', lastName: 'Sullivan', gender: 'Male', rating: 8},
-																																																								_1: {
-																																																									ctor: '::',
-																																																									_0: {firstName: 'Nick', lastName: 'Theriault', gender: 'Male', rating: 6},
-																																																									_1: {
-																																																										ctor: '::',
-																																																										_0: {firstName: 'Dan', lastName: 'Thomson', gender: 'Male', rating: 7},
-																																																										_1: {
-																																																											ctor: '::',
-																																																											_0: {firstName: 'David', lastName: 'Townsend', gender: 'Male', rating: 5},
-																																																											_1: {
-																																																												ctor: '::',
-																																																												_0: {firstName: 'Jay Thor', lastName: 'Turner', gender: 'Male', rating: 6},
-																																																												_1: {
-																																																													ctor: '::',
-																																																													_0: {firstName: 'Rob', lastName: 'Tyson', gender: 'Male', rating: 6},
-																																																													_1: {
-																																																														ctor: '::',
-																																																														_0: {firstName: 'Jamie', lastName: 'Wildgen', gender: 'Male', rating: 7},
-																																																														_1: {
-																																																															ctor: '::',
-																																																															_0: {firstName: 'Edwin', lastName: 'Wong', gender: 'Male', rating: 5},
-																																																															_1: {
-																																																																ctor: '::',
-																																																																_0: {firstName: 'Michael', lastName: 'Wong', gender: 'Male', rating: 5},
-																																																																_1: {
-																																																																	ctor: '::',
-																																																																	_0: {firstName: 'Kate', lastName: 'Achtell', gender: 'Female', rating: 6},
-																																																																	_1: {
-																																																																		ctor: '::',
-																																																																		_0: {firstName: 'Christine', lastName: 'Beals', gender: 'Female', rating: 5},
-																																																																		_1: {
-																																																																			ctor: '::',
-																																																																			_0: {firstName: 'Kristyn', lastName: 'Berquist', gender: 'Female', rating: 2},
-																																																																			_1: {
-																																																																				ctor: '::',
-																																																																				_0: {firstName: 'Cassie', lastName: 'Berquist', gender: 'Female', rating: 9},
-																																																																				_1: {
-																																																																					ctor: '::',
-																																																																					_0: {firstName: 'Jaime', lastName: 'Boss', gender: 'Female', rating: 8},
-																																																																					_1: {
-																																																																						ctor: '::',
-																																																																						_0: {firstName: 'Melany', lastName: 'Bouchard', gender: 'Female', rating: 8},
-																																																																						_1: {
-																																																																							ctor: '::',
-																																																																							_0: {firstName: 'Hope', lastName: 'Celani', gender: 'Female', rating: 5},
-																																																																							_1: {
-																																																																								ctor: '::',
-																																																																								_0: {firstName: 'Laura', lastName: 'Chambers Storey', gender: 'Female', rating: 7},
-																																																																								_1: {
-																																																																									ctor: '::',
-																																																																									_0: {firstName: 'Celine', lastName: 'Dumais', gender: 'Female', rating: 4},
-																																																																									_1: {
-																																																																										ctor: '::',
-																																																																										_0: {firstName: 'Kristie', lastName: 'Ellis', gender: 'Female', rating: 8},
-																																																																										_1: {
-																																																																											ctor: '::',
-																																																																											_0: {firstName: 'Tanya', lastName: 'Gallant', gender: 'Female', rating: 5},
-																																																																											_1: {
-																																																																												ctor: '::',
-																																																																												_0: {firstName: 'Clare', lastName: 'Gee', gender: 'Female', rating: 5},
-																																																																												_1: {
-																																																																													ctor: '::',
-																																																																													_0: {firstName: 'Marie-Ange', lastName: 'Gravel', gender: 'Female', rating: 5},
-																																																																													_1: {
-																																																																														ctor: '::',
-																																																																														_0: {firstName: 'Josee', lastName: 'Guibord', gender: 'Female', rating: 9},
-																																																																														_1: {
-																																																																															ctor: '::',
-																																																																															_0: {firstName: 'Melissa', lastName: 'Jess', gender: 'Female', rating: 6},
-																																																																															_1: {
-																																																																																ctor: '::',
-																																																																																_0: {firstName: 'Adrienne', lastName: 'Junek', gender: 'Female', rating: 6},
-																																																																																_1: {
-																																																																																	ctor: '::',
-																																																																																	_0: {firstName: 'Ashlin', lastName: 'Kelly', gender: 'Female', rating: 7},
-																																																																																	_1: {
-																																																																																		ctor: '::',
-																																																																																		_0: {firstName: 'Vanessa', lastName: 'Mann', gender: 'Female', rating: 8},
-																																																																																		_1: {
-																																																																																			ctor: '::',
-																																																																																			_0: {firstName: 'Angela', lastName: 'Mueller', gender: 'Female', rating: 7},
-																																																																																			_1: {
-																																																																																				ctor: '::',
-																																																																																				_0: {firstName: 'Rachel', lastName: 'Ng', gender: 'Female', rating: 3},
-																																																																																				_1: {
-																																																																																					ctor: '::',
-																																																																																					_0: {firstName: 'Justine', lastName: 'Price', gender: 'Female', rating: 7},
-																																																																																					_1: {
-																																																																																						ctor: '::',
-																																																																																						_0: {firstName: 'Andrea', lastName: 'Proulx', gender: 'Female', rating: 8},
-																																																																																						_1: {
-																																																																																							ctor: '::',
-																																																																																							_0: {firstName: 'Jessie', lastName: 'Robinson', gender: 'Female', rating: 8},
-																																																																																							_1: {
-																																																																																								ctor: '::',
-																																																																																								_0: {firstName: 'Neena', lastName: 'Sidhu', gender: 'Female', rating: 6},
-																																																																																								_1: {
-																																																																																									ctor: '::',
-																																																																																									_0: {firstName: 'Susan', lastName: 'Sunde', gender: 'Female', rating: 7},
-																																																																																									_1: {
-																																																																																										ctor: '::',
-																																																																																										_0: {firstName: 'An', lastName: 'Tran', gender: 'Female', rating: 7},
-																																																																																										_1: {
-																																																																																											ctor: '::',
-																																																																																											_0: {firstName: 'Stephanie', lastName: 'Verbit', gender: 'Female', rating: 6},
-																																																																																											_1: {
-																																																																																												ctor: '::',
-																																																																																												_0: {firstName: 'Heather', lastName: 'Wallace', gender: 'Female', rating: 6},
-																																																																																												_1: {
-																																																																																													ctor: '::',
-																																																																																													_0: {firstName: 'Michelle', lastName: 'Warren', gender: 'Female', rating: 9},
-																																																																																													_1: {
-																																																																																														ctor: '::',
-																																																																																														_0: {firstName: 'Carrie-Anne', lastName: 'Whyte', gender: 'Female', rating: 6},
-																																																																																														_1: {
-																																																																																															ctor: '::',
-																																																																																															_0: {firstName: 'Stacey', lastName: 'Wowchuk', gender: 'Female', rating: 6},
-																																																																																															_1: {
-																																																																																																ctor: '::',
-																																																																																																_0: {firstName: 'Alisha', lastName: 'Zhao', gender: 'Female', rating: 10},
-																																																																																																_1: {ctor: '[]'}
-																																																																																															}
-																																																																																														}
-																																																																																													}
-																																																																																												}
-																																																																																											}
-																																																																																										}
-																																																																																									}
-																																																																																								}
-																																																																																							}
-																																																																																						}
-																																																																																					}
-																																																																																				}
-																																																																																			}
-																																																																																		}
-																																																																																	}
-																																																																																}
-																																																																															}
-																																																																														}
-																																																																													}
-																																																																												}
-																																																																											}
-																																																																										}
-																																																																									}
-																																																																								}
-																																																																							}
-																																																																						}
-																																																																					}
-																																																																				}
-																																																																			}
-																																																																		}
-																																																																	}
-																																																																}
-																																																															}
-																																																														}
-																																																													}
-																																																												}
-																																																											}
-																																																										}
-																																																									}
-																																																								}
-																																																							}
-																																																						}
-																																																					}
-																																																				}
-																																																			}
-																																																		}
-																																																	}
-																																																}
-																																															}
-																																														}
-																																													}
-																																												}
-																																											}
-																																										}
-																																									}
-																																								}
-																																							}
-																																						}
-																																					}
-																																				}
-																																			}
-																																		}
-																																	}
-																																}
-																															}
-																														}
-																													}
-																												}
-																											}
-																										}
-																									}
-																								}
-																							}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-};
-var _user$project$Players$sortPlayers = F2(
-	function (sorter, players) {
-		return A2(_elm_lang$core$List$sortBy, sorter, _user$project$Players$allPlayers);
+var _user$project$Players$allPlayersRaw = '\nFirst Name,Last Name,Gender,Height,Skill Level\nLiza,Shelley,Female,67,9\nMichelle,Warren,Female,65,9\nJosee,Guibord,Female,64,9\nJaime,Boss,Female,66,8\nMyriam,Hebabi,Female,61,8\nKatie,Wood,Female,63,8\nKristie,Ellis,Female,66,8\nMelany,Bouchard,Female,70,8\nRachel,Robichaud,Female,65,8\nKate,Cavallaro,Female,67,8\nAshlin,Kelly,Female,67,8\nAndrea,Proulx,Female,62,8\nJessie,Robinson,Female,65,8\nEmily,Kavanagh,Female,71,7\nDarlene,Riley,Female,60,7\nAngela,Mueller,Female,69,7\nMelissa,Jess,Female,64,7\nKaren,Kavanagh,Female,64,7\nRenė,Gauvin,Female,69,7\nGenevieve,Labelle,Female,70,7\nJustine,Price,Female,63,7\nAndrea,Dietz,Female,67,7\nLaura,Chambers Storey,Female,68,7\nKama,Szereszewski,Female,63,6\nEloise,Clement,Female,66,6\nAdrienne,Junek,Female,63,6\nKristyn,Berquist,Female,64,6\nCaleigh,Irwin,Female,64,6\nKarin,Phillips,Female,67,6\nKate,Achtell,Female,61,6\nNeena,Sidhu,Female,63,6\nStacey,Wowchuk,Female,62,6\nNatalie,Mullin,Female,68,6\nHeather,Wallace,Female,64,6\nElsbeth,Vaino,Female,69,5\nRachel,Hurdle,Female,79,5\nAudrey,Nuk,Female,68,5\nErin,Courtney,Female,64,5\nWanda,Jonsson,Female,63,5\nElisa,Mantil,Female,69,5\nChristine,Beals,Female,62,5\nKindha,Gorman,Female,63,5\nJennifer,Saxe,Female,61,5\nRachel,Lefebvre,Female,70,5\nMarie-Ange,Gravel,Female,66,5\nAlix,Ranger,Female,67,5\nHope,Celani,Female,62,5\nAndrea,Brabant,Female,63,5\nClare,Gee,Female,67,5\nCeline,Dumais,Female,67,4\nJulia,Riddick,Female,70,4\nAnneMarie,Gagnon,Female,65,3\nEmily,MacDonald,Female,63,3\nRachel,Ng,Female,60,3\nAnnie,Christie,Female,69,3\nPatrick,Mapp,Male,73,10\nMatthew,Cole,Male,70,10\nMartin,Cloake,Male,79,9\nRyan,Wallace,Male,73,9\nMarcus,Bordage,Male,72,8\nAdam,MacDonald,Male,66,8\nBrian,O\'Callaghan,Male,70,8\nPascal,Michaud,Male,69,8\nCraig,Anderson,Male,67,8\nChris,Sullivan,Male,72,8\nGeofford,Seaborn,Male,75,8\nTravis,Davidson,Male,72,8\nTom,Newman,Male,74,8\nChristopher,Keates,Male,75,8\nMark,Donahue,Male,72,8\nHadrian,Mertins-Kirkwood,Male,73,8\nBrian,Perry,Male,72,8\nLuca,Lafontaine,Male,68,7\nDouglas,Brierley,Male,70,7\nJamie,Wildgen,Male,72,7\nShubho Bo,Biswas,Male,66,7\nStephen,Close,Male,71,7\nAlessandro,Colantonio,Male,70,7\nNick,Amlin,Male,72,7\nGreg,Probe,Male,70,7\nMichael,O\'Hare,Male,72,7\nThomas,Ferguson,Male,74,7\nMehmet,Karman,Male,72,7\nJohn,Haig,Male,71,7\nSteve,Bisang,Male,69,7\nNicholas,Aghajanian,Male,68,7\nKelsey,Charie,Male,67,7\nDan,Thomson,Male,70,7\nNick,Theriault,Male,72,7\nJared,Cohen,Male,67,7\nChristopher,Castonguay,Male,71,7\nTrevor,Stocki,Male,36,6\nCalvin,Wiebe,Male,67,6\nNick,Klimowicz,Male,74,6\nGreg,Kung,Male,73,6\nWing-Leung,Chan,Male,67,6\nMorgan,Howard,Male,73,6\nJon,Rowe,Male,73,6\nTim,Kealey,Male,72,6\nAllan,Godding,Male,75,6\nRob,Tyson,Male,70,6\nGiulian,De La Merced,Male,67,6\nJim,Robinson,Male,76,6\nSebastien,Belanger,Male,72,6\nPatrick,Kenzie,Male,66,6\nJohn,Siwiec,Male,69,5\nMatthew,Schijns,Male,72,5\nJeff,Hunt,Male,69,5\nGraham,Brown,Male,70,5\nDavid,Townsend,Male,71,5\nVan,Mardian,Male,74,5\nJonathan,Champagne,Male,67,5\nMicheal,Davidson,Male,60,3\nYingdi,Wu,Male,66,3\nBrian,Kells,Male,72,3\n';
+var _user$project$Players$isGender = F2(
+	function (gender, player) {
+		return _elm_lang$core$Native_Utils.eq(player.gender, gender);
 	});
-var _user$project$Players$players = A2(
-	_user$project$Players$sortPlayers,
-	function (_) {
-		return _.lastName;
-	},
-	_user$project$Players$allPlayers);
+var _user$project$Players$buildPlaceholderPlayers = F3(
+	function (targetCount, parsedPlayers, gender) {
+		var playerCount = _elm_lang$core$List$length(
+			A2(
+				_elm_lang$core$List$filter,
+				_user$project$Players$isGender(gender),
+				parsedPlayers));
+		var createDummy = F2(
+			function (gender, number) {
+				return {
+					firstName: A2(_elm_lang$core$Basics_ops['++'], gender, ' Placeholder'),
+					lastName: A2(
+						_elm_lang$core$Basics_ops['++'],
+						'_',
+						_elm_lang$core$Basics$toString(number)),
+					gender: gender,
+					height: 0,
+					rating: 0
+				};
+			});
+		return A2(
+			_elm_lang$core$List$map,
+			createDummy(gender),
+			A2(_elm_lang$core$List$range, 1, targetCount - playerCount));
+	});
+var _user$project$Players$compareByDesc = F3(
+	function (sort, x, y) {
+		return A2(
+			_elm_lang$core$Basics$compare,
+			sort(y),
+			sort(x));
+	});
+var _user$project$Players$compareByAsc = F3(
+	function (sort, x, y) {
+		return A2(
+			_elm_lang$core$Basics$compare,
+			sort(x),
+			sort(y));
+	});
 var _user$project$Players$playerName = function (player) {
 	return A2(
 		_elm_lang$core$Basics_ops['++'],
@@ -8727,76 +8962,136 @@ var _user$project$Players$playerName = function (player) {
 var _user$project$Players$className = function (player) {
 	return _elm_lang$core$Native_Utils.eq(player.gender, 'Female') ? 'female' : 'male';
 };
-var _user$project$Players$Player = F4(
-	function (a, b, c, d) {
-		return {firstName: a, lastName: b, gender: c, rating: d};
+var _user$project$Players$Player = F5(
+	function (a, b, c, d, e) {
+		return {firstName: a, lastName: b, gender: c, height: d, rating: e};
 	});
+var _user$project$Players$playerDecoder = A2(
+	_ericgj$elm_csv_decode$Csv_Decode$map,
+	_user$project$Players$Player,
+	A2(
+		_ericgj$elm_csv_decode$Csv_Decode$andMap,
+		_ericgj$elm_csv_decode$Csv_Decode$next(_elm_lang$core$String$toInt),
+		A2(
+			_ericgj$elm_csv_decode$Csv_Decode$andMap,
+			_ericgj$elm_csv_decode$Csv_Decode$next(_elm_lang$core$String$toInt),
+			A2(
+				_ericgj$elm_csv_decode$Csv_Decode$andMap,
+				_ericgj$elm_csv_decode$Csv_Decode$next(_elm_lang$core$Result$Ok),
+				A2(
+					_ericgj$elm_csv_decode$Csv_Decode$andMap,
+					_ericgj$elm_csv_decode$Csv_Decode$next(_elm_lang$core$Result$Ok),
+					_ericgj$elm_csv_decode$Csv_Decode$next(_elm_lang$core$Result$Ok))))));
+var _user$project$Players$allPlayersParsed = A2(
+	_elm_lang$core$Result$withDefault,
+	{ctor: '[]'},
+	A2(
+		_ericgj$elm_csv_decode$Csv_Decode$decodeCsv,
+		_user$project$Players$playerDecoder,
+		_lovasoa$elm_csv$Csv$parse(_user$project$Players$allPlayersRaw)));
+var _user$project$Players$players = function () {
+	var parsedPlayers = _user$project$Players$allPlayersParsed;
+	var buildPlayers = A2(_user$project$Players$buildPlaceholderPlayers, 10 * 6, parsedPlayers);
+	return A2(
+		_elm_lang$core$List$sortWith,
+		_user$project$Players$compareByAsc(
+			function (_) {
+				return _.gender;
+			}),
+		A2(
+			_elm_lang$core$List$sortWith,
+			_user$project$Players$compareByDesc(
+				function (_) {
+					return _.rating;
+				}),
+			A2(
+				_elm_lang$core$List$sortWith,
+				_user$project$Players$compareByAsc(
+					function (_) {
+						return _.lastName;
+					}),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					parsedPlayers,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						buildPlayers('Female'),
+						buildPlayers('Male'))))));
+}();
 
 var _user$project$Teams$allTeams = {
 	ctor: '::',
 	_0: {
-		gm: 'Chris Sullivan',
-		name: '',
+		gm: 'Michelle Warren',
 		players: {ctor: '[]'},
-		draftOrder: 0
+		draftOrder: 1
 	},
 	_1: {
 		ctor: '::',
 		_0: {
-			gm: 'Mehmet Karman',
-			name: '',
+			gm: 'Kindha Gorman',
 			players: {ctor: '[]'},
-			draftOrder: 1
+			draftOrder: 2
 		},
 		_1: {
 			ctor: '::',
 			_0: {
-				gm: 'Chris Keates',
-				name: '',
+				gm: 'Jaime Boss',
 				players: {ctor: '[]'},
-				draftOrder: 2
+				draftOrder: 3
 			},
 			_1: {
 				ctor: '::',
 				_0: {
-					gm: 'Al Colantonio',
-					name: '',
+					gm: 'Jessie Robinson',
 					players: {ctor: '[]'},
-					draftOrder: 3
+					draftOrder: 4
 				},
 				_1: {
 					ctor: '::',
 					_0: {
-						gm: 'Cassie Berquist',
-						name: '',
+						gm: 'Heather Wallace',
 						players: {ctor: '[]'},
-						draftOrder: 4
+						draftOrder: 5
 					},
 					_1: {
 						ctor: '::',
 						_0: {
-							gm: 'Brian Perry',
-							name: '',
+							gm: 'Kate Cav',
 							players: {ctor: '[]'},
-							draftOrder: 5
+							draftOrder: 6
 						},
 						_1: {
 							ctor: '::',
 							_0: {
-								gm: 'Heather Wallace',
-								name: '',
+								gm: 'Katie Wood',
 								players: {ctor: '[]'},
-								draftOrder: 6
+								draftOrder: 7
 							},
 							_1: {
 								ctor: '::',
 								_0: {
-									gm: 'Jessie Robinson',
-									name: '',
+									gm: 'Andrea Proulx',
 									players: {ctor: '[]'},
-									draftOrder: 7
+									draftOrder: 8
 								},
-								_1: {ctor: '[]'}
+								_1: {
+									ctor: '::',
+									_0: {
+										gm: 'Kate Achtell',
+										players: {ctor: '[]'},
+										draftOrder: 9
+									},
+									_1: {
+										ctor: '::',
+										_0: {
+											gm: 'Laura Storey',
+											players: {ctor: '[]'},
+											draftOrder: 10
+										},
+										_1: {ctor: '[]'}
+									}
+								}
 							}
 						}
 					}
@@ -8814,12 +9109,336 @@ var _user$project$Teams$sortedTeams = function (teams) {
 		teams);
 };
 var _user$project$Teams$teams = _user$project$Teams$sortedTeams(_user$project$Teams$allTeams);
-var _user$project$Teams$Team = F4(
-	function (a, b, c, d) {
-		return {gm: a, name: b, players: c, draftOrder: d};
+var _user$project$Teams$Team = F3(
+	function (a, b, c) {
+		return {gm: a, players: b, draftOrder: c};
 	});
 
-var _user$project$Main$segment = F3(
+var _user$project$Model$tabViewToInt = function (view) {
+	var _p0 = view;
+	switch (_p0.ctor) {
+		case 'DraftView':
+			return 0;
+		case 'TeamView':
+			return 1;
+		default:
+			return 2;
+	}
+};
+var _user$project$Model$initModel = {
+	undraftedPlayers: _user$project$Players$players,
+	draftedPlayers: {ctor: '[]'},
+	waitingTeams: _user$project$Teams$teams,
+	draftedTeams: {ctor: '[]'},
+	round: 1,
+	currentView: 0,
+	showMenu: false
+};
+var _user$project$Model$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {undraftedPlayers: a, draftedPlayers: b, waitingTeams: c, draftedTeams: d, round: e, currentView: f, showMenu: g};
+	});
+var _user$project$Model$HistoryView = {ctor: 'HistoryView'};
+var _user$project$Model$TeamView = {ctor: 'TeamView'};
+var _user$project$Model$DraftView = {ctor: 'DraftView'};
+var _user$project$Model$tabViewFromInt = function (value) {
+	var _p1 = value;
+	switch (_p1) {
+		case 1:
+			return _user$project$Model$TeamView;
+		case 2:
+			return _user$project$Model$HistoryView;
+		default:
+			return _user$project$Model$DraftView;
+	}
+};
+
+var _user$project$Update$addPlayer = F2(
+	function (player, team) {
+		var _p0 = team;
+		if (_p0.ctor === 'Just') {
+			var _p1 = _p0._0;
+			return _elm_lang$core$Maybe$Just(
+				_elm_lang$core$Native_Utils.update(
+					_p1,
+					{
+						players: {ctor: '::', _0: player, _1: _p1.players}
+					}));
+		} else {
+			return team;
+		}
+	});
+var _user$project$Update$updateRound = F2(
+	function (team, model) {
+		var waiting = function () {
+			var _p2 = _elm_lang$core$List$tail(model.waitingTeams);
+			if (_p2.ctor === 'Just') {
+				return _p2._0;
+			} else {
+				return {ctor: '[]'};
+			}
+		}();
+		var drafted = function () {
+			var _p3 = team;
+			if (_p3.ctor === 'Just') {
+				return {ctor: '::', _0: _p3._0, _1: model.draftedTeams};
+			} else {
+				return model.draftedTeams;
+			}
+		}();
+		return _elm_lang$core$List$isEmpty(waiting) ? {ctor: '_Tuple2', _0: drafted, _1: waiting} : {ctor: '_Tuple2', _0: waiting, _1: drafted};
+	});
+var _user$project$Update$unFlipDraftOrderIfRequired = F2(
+	function (model, teams) {
+		var toGender = function (ps) {
+			return A2(
+				_elm_lang$core$List$map,
+				function (_) {
+					return _.gender;
+				},
+				ps);
+		};
+		var players = toGender(
+			A2(_elm_lang$core$List$map, _elm_lang$core$Tuple$first, model.draftedPlayers));
+		var unMax = _elm_lang$core$List$maximum(players);
+		var drMax = _elm_lang$core$List$maximum(
+			toGender(model.undraftedPlayers));
+		return _elm_lang$core$Native_Utils.eq(unMax, drMax) ? teams : _elm_lang$core$List$reverse(teams);
+	});
+var _user$project$Update$dummyTeam = {
+	gm: 'gm',
+	players: {ctor: '[]'},
+	draftOrder: 0
+};
+var _user$project$Update$dummyPlayer = {firstName: 'first', lastName: 'last', gender: 'x', height: 10, rating: 1};
+var _user$project$Update$undraftPlayer = function (model) {
+	var playersDrafted = A2(
+		_elm_lang$core$Maybe$withDefault,
+		{ctor: '[]'},
+		_elm_lang$core$List$tail(model.draftedPlayers));
+	var _p4 = A2(
+		_elm_lang$core$Maybe$withDefault,
+		{ctor: '_Tuple2', _0: _user$project$Update$dummyPlayer, _1: ''},
+		_elm_lang$core$List$head(model.draftedPlayers));
+	var lastPlayer = _p4._0;
+	var playersWaiting = {ctor: '::', _0: lastPlayer, _1: model.undraftedPlayers};
+	return {ctor: '_Tuple2', _0: playersWaiting, _1: playersDrafted};
+};
+var _user$project$Update$undoDraft = function (model) {
+	var _p5 = _user$project$Update$undraftPlayer(model);
+	var playersWaiting = _p5._0;
+	var playersDrafted = _p5._1;
+	var shouldUndoRound = (_elm_lang$core$Native_Utils.cmp(model.round, 1) > 0) && _elm_lang$core$List$isEmpty(model.draftedTeams);
+	var teamList = A2(
+		_user$project$Update$unFlipDraftOrderIfRequired,
+		model,
+		shouldUndoRound ? model.waitingTeams : model.draftedTeams);
+	var lastDraftedTeam = A2(
+		_elm_lang$core$Maybe$withDefault,
+		_user$project$Update$dummyTeam,
+		_elm_lang$core$List$head(teamList));
+	var lastTeam = A2(
+		_elm_lang$core$Debug$log,
+		'lastTeam',
+		_elm_lang$core$Native_Utils.update(
+			lastDraftedTeam,
+			{
+				players: A2(
+					_elm_lang$core$Maybe$withDefault,
+					{ctor: '[]'},
+					_elm_lang$core$List$tail(lastDraftedTeam.players))
+			}));
+	var teamsDrafted = A2(
+		_elm_lang$core$Maybe$withDefault,
+		{ctor: '[]'},
+		_elm_lang$core$List$tail(teamList));
+	var teamsWaiting = shouldUndoRound ? {
+		ctor: '::',
+		_0: lastTeam,
+		_1: {ctor: '[]'}
+	} : {ctor: '::', _0: lastTeam, _1: model.waitingTeams};
+	var round = shouldUndoRound ? (model.round - 1) : model.round;
+	return _elm_lang$core$Native_Utils.update(
+		model,
+		{undraftedPlayers: playersWaiting, draftedPlayers: playersDrafted, waitingTeams: teamsWaiting, draftedTeams: teamsDrafted, round: round});
+};
+var _user$project$Update$undo = function (model) {
+	return _elm_lang$core$List$isEmpty(model.draftedPlayers) ? model : _user$project$Update$undoDraft(model);
+};
+var _user$project$Update$draftPlayer = F2(
+	function (player, model) {
+		var draftingTeam = A2(
+			_user$project$Update$addPlayer,
+			player,
+			_elm_lang$core$List$head(model.waitingTeams));
+		var _p6 = A2(_user$project$Update$updateRound, draftingTeam, model);
+		var newWaiting = _p6._0;
+		var newDrafted = _p6._1;
+		var round = _elm_lang$core$List$isEmpty(newDrafted) ? (model.round + 1) : model.round;
+		var draftingTeamName = function () {
+			var _p7 = draftingTeam;
+			if (_p7.ctor === 'Just') {
+				return A2(_elm_lang$core$Basics_ops['++'], _p7._0.gm, ':');
+			} else {
+				return 'Unknown Team';
+			}
+		}();
+		var remaining = A2(
+			_elm_lang$core$List$filter,
+			function (p) {
+				return !_elm_lang$core$Native_Utils.eq(p, player);
+			},
+			model.undraftedPlayers);
+		var remainingGender = A2(
+			_elm_lang$core$List$filter,
+			_user$project$Players$isGender(player.gender),
+			remaining);
+		var updatedWaiting = _elm_lang$core$List$isEmpty(remainingGender) ? _elm_lang$core$List$reverse(newWaiting) : newWaiting;
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				undraftedPlayers: remaining,
+				draftedPlayers: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: player, _1: draftingTeamName},
+					_1: model.draftedPlayers
+				},
+				waitingTeams: updatedWaiting,
+				draftedTeams: newDrafted,
+				round: round
+			});
+	});
+var _user$project$Update$moveTeamDown = F2(
+	function (team, model) {
+		var update = F2(
+			function (i, t) {
+				return _elm_lang$core$Native_Utils.eq(i, team.draftOrder + 1) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder - 1}) : (_elm_lang$core$Native_Utils.eq(i, team.draftOrder) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder + 1}) : t);
+			});
+		var teams = model.waitingTeams;
+		var updatedTeams = A2(_elm_lang$core$List$indexedMap, update, teams);
+		return _elm_lang$core$Native_Utils.eq(
+			team.draftOrder,
+			_elm_lang$core$List$length(model.waitingTeams)) ? model : _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
+			});
+	});
+var _user$project$Update$moveTeamUp = F2(
+	function (team, model) {
+		var update = F2(
+			function (i, t) {
+				return _elm_lang$core$Native_Utils.eq(i, team.draftOrder - 1) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder + 1}) : (_elm_lang$core$Native_Utils.eq(i, team.draftOrder) ? _elm_lang$core$Native_Utils.update(
+					t,
+					{draftOrder: t.draftOrder - 1}) : t);
+			});
+		var teams = model.waitingTeams;
+		var updatedTeams = A2(_elm_lang$core$List$indexedMap, update, teams);
+		return _elm_lang$core$Native_Utils.eq(team.draftOrder, 0) ? model : _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
+			});
+	});
+var _user$project$Update$resetDraft = function (model) {
+	var resetRoster = function (team) {
+		return _elm_lang$core$Native_Utils.update(
+			team,
+			{
+				players: {ctor: '[]'}
+			});
+	};
+	var teams = _user$project$Teams$sortedTeams(
+		A2(
+			_elm_lang$core$List$map,
+			resetRoster,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$List$reverse(model.draftedTeams),
+				model.waitingTeams)));
+	return _elm_lang$core$Native_Utils.update(
+		_user$project$Model$initModel,
+		{waitingTeams: teams});
+};
+var _user$project$Update$update = F2(
+	function (msg, model) {
+		var newModel = function () {
+			var _p8 = msg;
+			switch (_p8.ctor) {
+				case 'NoOp':
+					return model;
+				case 'Draft':
+					return A2(_user$project$Update$draftPlayer, _p8._0, model);
+				case 'FlipOrder':
+					return _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							waitingTeams: _elm_lang$core$List$reverse(model.waitingTeams)
+						});
+				case 'UndoDraft':
+					return _user$project$Update$undo(model);
+				case 'RestartDraft':
+					return _user$project$Update$resetDraft(model);
+				case 'ChangeView':
+					return _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							currentView: _user$project$Model$tabViewToInt(_p8._0)
+						});
+				case 'ResortPlayers':
+					return _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							undraftedPlayers: A2(_elm_lang$core$List$sortWith, _p8._0, model.undraftedPlayers)
+						});
+				case 'MoveTeamUp':
+					return A2(_user$project$Update$moveTeamUp, _p8._0, model);
+				case 'MoveTeamDown':
+					return A2(_user$project$Update$moveTeamDown, _p8._0, model);
+				case 'ToggleMenu':
+					return _elm_lang$core$Native_Utils.update(
+						model,
+						{showMenu: _p8._0});
+				default:
+					return _user$project$Model$initModel;
+			}
+		}();
+		return A2(
+			_elm_lang$core$Platform_Cmd_ops['!'],
+			newModel,
+			{ctor: '[]'});
+	});
+var _user$project$Update$ResetApp = {ctor: 'ResetApp'};
+var _user$project$Update$ToggleMenu = function (a) {
+	return {ctor: 'ToggleMenu', _0: a};
+};
+var _user$project$Update$MoveTeamDown = function (a) {
+	return {ctor: 'MoveTeamDown', _0: a};
+};
+var _user$project$Update$MoveTeamUp = function (a) {
+	return {ctor: 'MoveTeamUp', _0: a};
+};
+var _user$project$Update$ResortPlayers = function (a) {
+	return {ctor: 'ResortPlayers', _0: a};
+};
+var _user$project$Update$ChangeView = function (a) {
+	return {ctor: 'ChangeView', _0: a};
+};
+var _user$project$Update$RestartDraft = {ctor: 'RestartDraft'};
+var _user$project$Update$UndoDraft = {ctor: 'UndoDraft'};
+var _user$project$Update$FlipOrder = {ctor: 'FlipOrder'};
+var _user$project$Update$Draft = function (a) {
+	return {ctor: 'Draft', _0: a};
+};
+var _user$project$Update$NoOp = {ctor: 'NoOp'};
+
+var _user$project$View$segment = F3(
 	function (title, className, list) {
 		return A2(
 			_elm_lang$html$Html$div,
@@ -8856,701 +9475,7 @@ var _user$project$Main$segment = F3(
 				}
 			});
 	});
-var _user$project$Main$viewDraftedPlayer = function (playerInfo) {
-	var _p0 = playerInfo;
-	var player = _p0._0;
-	var gm = _p0._1;
-	var className = _user$project$Players$className(player);
-	return A2(
-		_elm_lang$html$Html$li,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('gm'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text(gm),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class(className),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(
-							_user$project$Players$playerName(player)),
-						_1: {ctor: '[]'}
-					}),
-				_1: {ctor: '[]'}
-			}
-		});
-};
-var _user$project$Main$viewPlayerList = F3(
-	function (title, view, list) {
-		return A3(
-			_user$project$Main$segment,
-			title,
-			'',
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$ol,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('players'),
-						_1: {ctor: '[]'}
-					},
-					A2(_elm_lang$core$List$map, view, list)),
-				_1: {ctor: '[]'}
-			});
-	});
-var _user$project$Main$viewPlayerDetail = F3(
-	function (attributes, details, player) {
-		var content = details ? {
-			ctor: '::',
-			_0: _elm_lang$html$Html$text(
-				_user$project$Players$playerName(player)),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$span,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('stat'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(
-							_user$project$Format$formatRating(player.rating)),
-						_1: {ctor: '[]'}
-					}),
-				_1: {ctor: '[]'}
-			}
-		} : {
-			ctor: '::',
-			_0: _elm_lang$html$Html$text(
-				_user$project$Players$playerName(player)),
-			_1: {ctor: '[]'}
-		};
-		return A2(
-			_elm_lang$html$Html$li,
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class(
-						_user$project$Players$className(player)),
-					_1: {ctor: '[]'}
-				},
-				attributes),
-			content);
-	});
-var _user$project$Main$viewTeamWithRoster = F2(
-	function (format, team) {
-		var _p1 = format ? {
-			ctor: '_Tuple2',
-			_0: A2(
-				_elm_lang$html$Html$h3,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text(team.gm),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$br,
-					{ctor: '[]'},
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$br,
-						{ctor: '[]'},
-						{ctor: '[]'}),
-					_1: {ctor: '[]'}
-				}
-			}
-		} : {
-			ctor: '_Tuple2',
-			_0: _elm_lang$html$Html$text(''),
-			_1: {ctor: '[]'}
-		};
-		var start = _p1._0;
-		var end = _p1._1;
-		var viewPlayers = A2(
-			_elm_lang$core$List$map,
-			A2(
-				_user$project$Main$viewPlayerDetail,
-				{ctor: '[]'},
-				false),
-			_elm_lang$core$List$reverse(team.players));
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('team'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: start,
-				_1: A2(
-					_elm_lang$core$Basics_ops['++'],
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$ul,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('players'),
-								_1: {ctor: '[]'}
-							},
-							viewPlayers),
-						_1: {ctor: '[]'}
-					},
-					end)
-			});
-	});
-var _user$project$Main$viewWaitingTeams = function (teams) {
-	var teamList = function () {
-		var _p2 = _elm_lang$core$List$tail(teams);
-		if (_p2.ctor === 'Just') {
-			return A2(
-				_elm_lang$html$Html$ul,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('teams'),
-					_1: {ctor: '[]'}
-				},
-				A2(
-					_elm_lang$core$List$map,
-					function (t) {
-						return A2(
-							_elm_lang$html$Html$li,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(t.gm),
-								_1: {ctor: '[]'}
-							});
-					},
-					_p2._0));
-		} else {
-			return A2(
-				_elm_lang$html$Html$ul,
-				{ctor: '[]'},
-				{ctor: '[]'});
-		}
-	}();
-	var upNext = {
-		ctor: '::',
-		_0: A2(
-			_elm_lang$html$Html$h3,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html$text('Up Next'),
-				_1: {ctor: '[]'}
-			}),
-		_1: {
-			ctor: '::',
-			_0: teamList,
-			_1: {ctor: '[]'}
-		}
-	};
-	var _p3 = function () {
-		var _p4 = _elm_lang$core$List$head(teams);
-		if (_p4.ctor === 'Just') {
-			var _p5 = _p4._0;
-			return {
-				ctor: '_Tuple2',
-				_0: A2(_user$project$Main$viewTeamWithRoster, false, _p5),
-				_1: _p5.gm
-			};
-		} else {
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$html$Html$text('Unknown Team!'),
-				_1: 'Unknown!'
-			};
-		}
-	}();
-	var currentTeam = _p3._0;
-	var title = _p3._1;
-	return A3(
-		_user$project$Main$segment,
-		title,
-		'current',
-		{ctor: '::', _0: currentTeam, _1: upNext});
-};
-var _user$project$Main$viewTeamsWithLatest = F2(
-	function (round, teams) {
-		var title = A2(
-			_elm_lang$core$Basics_ops['++'],
-			'Round ',
-			_elm_lang$core$Basics$toString(round));
-		var formatPlayer = function (player) {
-			var className = _user$project$Players$className(player);
-			return A2(
-				_elm_lang$html$Html$dd,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class(className),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text(
-						_user$project$Players$playerName(player)),
-					_1: {ctor: '[]'}
-				});
-		};
-		var viewPlayers = function (team) {
-			var _p6 = _elm_lang$core$List$head(team.players);
-			if (_p6.ctor === 'Just') {
-				return A2(
-					_elm_lang$html$Html$dt,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(team.gm),
-						_1: {
-							ctor: '::',
-							_0: formatPlayer(_p6._0),
-							_1: {ctor: '[]'}
-						}
-					});
-			} else {
-				return _elm_lang$html$Html$text(title);
-			}
-		};
-		var teamList = A2(_elm_lang$core$List$map, viewPlayers, teams);
-		return A3(
-			_user$project$Main$segment,
-			title,
-			'latest',
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$dl,
-					{ctor: '[]'},
-					teamList),
-				_1: {ctor: '[]'}
-			});
-	});
-var _user$project$Main$viewDraftHistory = function (model) {
-	return {
-		ctor: '::',
-		_0: A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$id('historyView'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A3(_user$project$Main$viewPlayerList, 'Draft History', _user$project$Main$viewDraftedPlayer, model.draftedPlayers),
-				_1: {
-					ctor: '::',
-					_0: A3(
-						_user$project$Main$viewPlayerList,
-						'Draft Order',
-						_user$project$Main$viewDraftedPlayer,
-						_elm_lang$core$List$reverse(model.draftedPlayers)),
-					_1: {ctor: '[]'}
-				}
-			}),
-		_1: {ctor: '[]'}
-	};
-};
-var _user$project$Main$styles = A3(
-	_elm_lang$html$Html$node,
-	'link',
-	{
-		ctor: '::',
-		_0: _elm_lang$html$Html_Attributes$rel('stylesheet'),
-		_1: {
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$href('style.css'),
-			_1: {ctor: '[]'}
-		}
-	},
-	{ctor: '[]'});
-var _user$project$Main$addPlayer = F2(
-	function (player, team) {
-		var _p7 = team;
-		if (_p7.ctor === 'Just') {
-			var _p8 = _p7._0;
-			return _elm_lang$core$Maybe$Just(
-				_elm_lang$core$Native_Utils.update(
-					_p8,
-					{
-						players: {ctor: '::', _0: player, _1: _p8.players}
-					}));
-		} else {
-			return team;
-		}
-	});
-var _user$project$Main$updateRound = F2(
-	function (team, model) {
-		var waiting = function () {
-			var _p9 = _elm_lang$core$List$tail(model.waitingTeams);
-			if (_p9.ctor === 'Just') {
-				return _p9._0;
-			} else {
-				return {ctor: '[]'};
-			}
-		}();
-		var drafted = function () {
-			var _p10 = team;
-			if (_p10.ctor === 'Just') {
-				return {ctor: '::', _0: _p10._0, _1: model.draftedTeams};
-			} else {
-				return model.draftedTeams;
-			}
-		}();
-		return _elm_lang$core$List$isEmpty(waiting) ? {ctor: '_Tuple2', _0: drafted, _1: waiting} : {ctor: '_Tuple2', _0: waiting, _1: drafted};
-	});
-var _user$project$Main$dummyTeam = {
-	gm: 'gm',
-	name: 'team',
-	players: {ctor: '[]'},
-	draftOrder: 0
-};
-var _user$project$Main$dummyPlayer = {firstName: 'first', lastName: 'last', gender: 'x', rating: 1};
-var _user$project$Main$undraftPlayer = function (model) {
-	var playersDrafted = A2(
-		_elm_lang$core$Maybe$withDefault,
-		{ctor: '[]'},
-		_elm_lang$core$List$tail(model.draftedPlayers));
-	var _p11 = A2(
-		_elm_lang$core$Maybe$withDefault,
-		{ctor: '_Tuple2', _0: _user$project$Main$dummyPlayer, _1: ''},
-		_elm_lang$core$List$head(model.draftedPlayers));
-	var lastPlayer = _p11._0;
-	var playersWaiting = {ctor: '::', _0: lastPlayer, _1: model.undraftedPlayers};
-	return {ctor: '_Tuple2', _0: playersWaiting, _1: playersDrafted};
-};
-var _user$project$Main$undoDraft = function (model) {
-	var _p12 = _user$project$Main$undraftPlayer(model);
-	var playersWaiting = _p12._0;
-	var playersDrafted = _p12._1;
-	var shouldUndoRound = (_elm_lang$core$Native_Utils.cmp(model.round, 1) > 0) && _elm_lang$core$List$isEmpty(model.draftedTeams);
-	var teamList = shouldUndoRound ? model.waitingTeams : model.draftedTeams;
-	var lastDraftedTeam = A2(
-		_elm_lang$core$Maybe$withDefault,
-		_user$project$Main$dummyTeam,
-		_elm_lang$core$List$head(teamList));
-	var lastTeam = A2(
-		_elm_lang$core$Debug$log,
-		'lastTeam',
-		_elm_lang$core$Native_Utils.update(
-			lastDraftedTeam,
-			{
-				players: A2(
-					_elm_lang$core$Maybe$withDefault,
-					{ctor: '[]'},
-					_elm_lang$core$List$tail(lastDraftedTeam.players))
-			}));
-	var teamsDrafted = A2(
-		_elm_lang$core$Maybe$withDefault,
-		{ctor: '[]'},
-		_elm_lang$core$List$tail(teamList));
-	var teamsWaiting = shouldUndoRound ? {
-		ctor: '::',
-		_0: lastTeam,
-		_1: {ctor: '[]'}
-	} : {ctor: '::', _0: lastTeam, _1: model.waitingTeams};
-	var round = shouldUndoRound ? (model.round - 1) : model.round;
-	return _elm_lang$core$Native_Utils.update(
-		model,
-		{undraftedPlayers: playersWaiting, draftedPlayers: playersDrafted, waitingTeams: teamsWaiting, draftedTeams: teamsDrafted, round: round});
-};
-var _user$project$Main$undo = function (model) {
-	return _elm_lang$core$List$isEmpty(model.draftedPlayers) ? model : _user$project$Main$undoDraft(model);
-};
-var _user$project$Main$draftPlayer = F2(
-	function (player, model) {
-		var draftingTeam = A2(
-			_user$project$Main$addPlayer,
-			player,
-			_elm_lang$core$List$head(model.waitingTeams));
-		var _p13 = A2(_user$project$Main$updateRound, draftingTeam, model);
-		var newWaiting = _p13._0;
-		var newDrafted = _p13._1;
-		var round = _elm_lang$core$List$isEmpty(newDrafted) ? (model.round + 1) : model.round;
-		var draftingTeamName = function () {
-			var _p14 = draftingTeam;
-			if (_p14.ctor === 'Just') {
-				return A2(_elm_lang$core$Basics_ops['++'], _p14._0.gm, ':');
-			} else {
-				return 'Unknown Team';
-			}
-		}();
-		var remaining = A2(
-			_elm_lang$core$List$filter,
-			function (p) {
-				return !_elm_lang$core$Native_Utils.eq(p, player);
-			},
-			model.undraftedPlayers);
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				undraftedPlayers: remaining,
-				draftedPlayers: {
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: player, _1: draftingTeamName},
-					_1: model.draftedPlayers
-				},
-				waitingTeams: newWaiting,
-				draftedTeams: newDrafted,
-				round: round
-			});
-	});
-var _user$project$Main$moveTeamDown = F2(
-	function (team, model) {
-		var update = F2(
-			function (i, t) {
-				return _elm_lang$core$Native_Utils.eq(i, team.draftOrder + 1) ? _elm_lang$core$Native_Utils.update(
-					t,
-					{draftOrder: t.draftOrder - 1}) : (_elm_lang$core$Native_Utils.eq(i, team.draftOrder) ? _elm_lang$core$Native_Utils.update(
-					t,
-					{draftOrder: t.draftOrder + 1}) : t);
-			});
-		var teams = model.waitingTeams;
-		var updatedTeams = A2(_elm_lang$core$List$indexedMap, update, teams);
-		return _elm_lang$core$Native_Utils.eq(
-			team.draftOrder,
-			_elm_lang$core$List$length(model.waitingTeams)) ? model : _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
-			});
-	});
-var _user$project$Main$moveTeamUp = F2(
-	function (team, model) {
-		var update = F2(
-			function (i, t) {
-				return _elm_lang$core$Native_Utils.eq(i, team.draftOrder - 1) ? _elm_lang$core$Native_Utils.update(
-					t,
-					{draftOrder: t.draftOrder + 1}) : (_elm_lang$core$Native_Utils.eq(i, team.draftOrder) ? _elm_lang$core$Native_Utils.update(
-					t,
-					{draftOrder: t.draftOrder - 1}) : t);
-			});
-		var teams = model.waitingTeams;
-		var updatedTeams = A2(_elm_lang$core$List$indexedMap, update, teams);
-		return _elm_lang$core$Native_Utils.eq(team.draftOrder, 0) ? model : _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
-			});
-	});
-var _user$project$Main$tabViewToInt = function (view) {
-	var _p15 = view;
-	switch (_p15.ctor) {
-		case 'DraftView':
-			return 0;
-		case 'TeamView':
-			return 1;
-		default:
-			return 2;
-	}
-};
-var _user$project$Main$initModel = {
-	undraftedPlayers: _user$project$Players$players,
-	draftedPlayers: {ctor: '[]'},
-	waitingTeams: _user$project$Teams$teams,
-	draftedTeams: {ctor: '[]'},
-	round: 1,
-	currentView: 0
-};
-var _user$project$Main$resetDraft = function (model) {
-	var resetRoster = function (team) {
-		return _elm_lang$core$Native_Utils.update(
-			team,
-			{
-				players: {ctor: '[]'}
-			});
-	};
-	var teams = _user$project$Teams$sortedTeams(
-		A2(
-			_elm_lang$core$List$map,
-			resetRoster,
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				_elm_lang$core$List$reverse(model.draftedTeams),
-				model.waitingTeams)));
-	return _elm_lang$core$Native_Utils.update(
-		_user$project$Main$initModel,
-		{waitingTeams: teams});
-};
-var _user$project$Main$update = F2(
-	function (msg, model) {
-		var newModel = function () {
-			var _p16 = msg;
-			switch (_p16.ctor) {
-				case 'Draft':
-					return A2(_user$project$Main$draftPlayer, _p16._0, model);
-				case 'FlipOrder':
-					return _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							waitingTeams: _elm_lang$core$List$reverse(model.waitingTeams)
-						});
-				case 'UndoDraft':
-					return _user$project$Main$undo(model);
-				case 'Reset':
-					return _user$project$Main$resetDraft(model);
-				case 'ChangeView':
-					return _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							currentView: _user$project$Main$tabViewToInt(_p16._0)
-						});
-				case 'ResortPlayers':
-					return _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							undraftedPlayers: A2(_elm_lang$core$List$sortWith, _p16._0, model.undraftedPlayers)
-						});
-				case 'MoveTeamUp':
-					return A2(_user$project$Main$moveTeamUp, _p16._0, model);
-				default:
-					return A2(_user$project$Main$moveTeamDown, _p16._0, model);
-			}
-		}();
-		return A2(
-			_elm_lang$core$Platform_Cmd_ops['!'],
-			newModel,
-			{ctor: '[]'});
-	});
-var _user$project$Main$compareByDesc = F3(
-	function (sort, x, y) {
-		return A2(
-			_elm_lang$core$Basics$compare,
-			sort(y),
-			sort(x));
-	});
-var _user$project$Main$compareByAsc = F3(
-	function (sort, x, y) {
-		return A2(
-			_elm_lang$core$Basics$compare,
-			sort(x),
-			sort(y));
-	});
-var _user$project$Main$init = function (savedModel) {
-	return A2(
-		_elm_lang$core$Platform_Cmd_ops['!'],
-		A2(_elm_lang$core$Maybe$withDefault, _user$project$Main$initModel, savedModel),
-		{ctor: '[]'});
-};
-var _user$project$Main$saveModel = _elm_lang$core$Native_Platform.outgoingPort(
-	'saveModel',
-	function (v) {
-		return {
-			undraftedPlayers: _elm_lang$core$Native_List.toArray(v.undraftedPlayers).map(
-				function (v) {
-					return {firstName: v.firstName, lastName: v.lastName, gender: v.gender, rating: v.rating};
-				}),
-			draftedPlayers: _elm_lang$core$Native_List.toArray(v.draftedPlayers).map(
-				function (v) {
-					return [
-						{firstName: v._0.firstName, lastName: v._0.lastName, gender: v._0.gender, rating: v._0.rating},
-						v._1
-					];
-				}),
-			waitingTeams: _elm_lang$core$Native_List.toArray(v.waitingTeams).map(
-				function (v) {
-					return {
-						gm: v.gm,
-						name: v.name,
-						players: _elm_lang$core$Native_List.toArray(v.players).map(
-							function (v) {
-								return {firstName: v.firstName, lastName: v.lastName, gender: v.gender, rating: v.rating};
-							}),
-						draftOrder: v.draftOrder
-					};
-				}),
-			draftedTeams: _elm_lang$core$Native_List.toArray(v.draftedTeams).map(
-				function (v) {
-					return {
-						gm: v.gm,
-						name: v.name,
-						players: _elm_lang$core$Native_List.toArray(v.players).map(
-							function (v) {
-								return {firstName: v.firstName, lastName: v.lastName, gender: v.gender, rating: v.rating};
-							}),
-						draftOrder: v.draftOrder
-					};
-				}),
-			round: v.round,
-			currentView: v.currentView
-		};
-	});
-var _user$project$Main$updateWithStorage = F2(
-	function (msg, model) {
-		var _p17 = A2(_user$project$Main$update, msg, model);
-		var newModel = _p17._0;
-		var cmds = _p17._1;
-		return {
-			ctor: '_Tuple2',
-			_0: newModel,
-			_1: _elm_lang$core$Platform_Cmd$batch(
-				{
-					ctor: '::',
-					_0: _user$project$Main$saveModel(newModel),
-					_1: {
-						ctor: '::',
-						_0: cmds,
-						_1: {ctor: '[]'}
-					}
-				})
-		};
-	});
-var _user$project$Main$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {undraftedPlayers: a, draftedPlayers: b, waitingTeams: c, draftedTeams: d, round: e, currentView: f};
-	});
-var _user$project$Main$HistoryView = {ctor: 'HistoryView'};
-var _user$project$Main$TeamView = {ctor: 'TeamView'};
-var _user$project$Main$DraftView = {ctor: 'DraftView'};
-var _user$project$Main$tabViewFromInt = function (value) {
-	var _p18 = value;
-	switch (_p18) {
-		case 1:
-			return _user$project$Main$TeamView;
-		case 2:
-			return _user$project$Main$HistoryView;
-		default:
-			return _user$project$Main$DraftView;
-	}
-};
-var _user$project$Main$MoveTeamDown = function (a) {
-	return {ctor: 'MoveTeamDown', _0: a};
-};
-var _user$project$Main$MoveTeamUp = function (a) {
-	return {ctor: 'MoveTeamUp', _0: a};
-};
-var _user$project$Main$ResortPlayers = function (a) {
-	return {ctor: 'ResortPlayers', _0: a};
-};
-var _user$project$Main$viewPlayerSortMenu = function () {
+var _user$project$View$viewPlayerSortMenu = function () {
 	var sortable = F2(
 		function (compare, label) {
 			return A2(
@@ -9563,8 +9488,8 @@ var _user$project$Main$viewPlayerSortMenu = function () {
 						{
 							ctor: '::',
 							_0: _elm_lang$html$Html_Events$onClick(
-								_user$project$Main$ResortPlayers(
-									_user$project$Main$compareByDesc(compare))),
+								_user$project$Update$ResortPlayers(
+									_user$project$Players$compareByDesc(compare))),
 							_1: {ctor: '[]'}
 						},
 						{
@@ -9579,8 +9504,8 @@ var _user$project$Main$viewPlayerSortMenu = function () {
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html_Events$onClick(
-									_user$project$Main$ResortPlayers(
-										_user$project$Main$compareByAsc(compare))),
+									_user$project$Update$ResortPlayers(
+										_user$project$Players$compareByAsc(compare))),
 								_1: {ctor: '[]'}
 							},
 							{
@@ -9624,9 +9549,9 @@ var _user$project$Main$viewPlayerSortMenu = function () {
 					_0: A2(
 						sortable,
 						function (_) {
-							return _.gender;
+							return _.height;
 						},
-						'Gender'),
+						'Height'),
 					_1: {
 						ctor: '::',
 						_0: A2(
@@ -9641,213 +9566,141 @@ var _user$project$Main$viewPlayerSortMenu = function () {
 			}
 		});
 }();
-var _user$project$Main$ChangeView = function (a) {
-	return {ctor: 'ChangeView', _0: a};
-};
-var _user$project$Main$viewTabNav = function (currentView) {
-	var buildTab = F2(
-		function (tabView, title) {
-			var className = _elm_lang$core$Native_Utils.eq(tabView, currentView) ? 'active' : '';
-			return A2(
+var _user$project$View$viewDraftedPlayer = function (playerInfo) {
+	var _p0 = playerInfo;
+	var player = _p0._0;
+	var gm = _p0._1;
+	var className = _user$project$Players$className(player);
+	return A2(
+		_elm_lang$html$Html$li,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
 				_elm_lang$html$Html$div,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class(className),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$html$Html_Events$onClick(
-							_user$project$Main$ChangeView(tabView)),
-						_1: {ctor: '[]'}
-					}
+					_0: _elm_lang$html$Html_Attributes$class('gm'),
+					_1: {ctor: '[]'}
 				},
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html$text(title),
+					_0: _elm_lang$html$Html$text(gm),
 					_1: {ctor: '[]'}
-				});
-		});
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('nav'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(buildTab, _user$project$Main$DraftView, 'Draft'),
+				}),
 			_1: {
 				ctor: '::',
-				_0: A2(buildTab, _user$project$Main$TeamView, 'Teams'),
-				_1: {
-					ctor: '::',
-					_0: A2(buildTab, _user$project$Main$HistoryView, 'History'),
-					_1: {ctor: '[]'}
-				}
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class(className),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							_user$project$Players$playerName(player)),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
 			}
 		});
 };
-var _user$project$Main$Reset = {ctor: 'Reset'};
-var _user$project$Main$viewDraftComplete = function (model) {
-	var restartButton = A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('restartDraft'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$button,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Reset),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('Restart Draft'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {ctor: '[]'}
-		});
-	var swap = function (team) {
-		return A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
+var _user$project$View$viewPlayerList = F3(
+	function (title, view, list) {
+		return A3(
+			_user$project$View$segment,
+			title,
+			'',
 			{
 				ctor: '::',
-				_0: A2(_user$project$Main$viewTeamWithRoster, true, team),
+				_0: A2(
+					_elm_lang$html$Html$ol,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('players'),
+						_1: {ctor: '[]'}
+					},
+					A2(_elm_lang$core$List$map, view, list)),
+				_1: {ctor: '[]'}
+			});
+	});
+var _user$project$View$viewPlayerDetail = F3(
+	function (attributes, details, player) {
+		var content = details ? {
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(
+				_user$project$Players$playerName(player)),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$span,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('stat'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							_user$project$Format$formatRating(player.rating)),
+						_1: {ctor: '[]'}
+					}),
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$button,
+						_elm_lang$html$Html$span,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Events$onClick(
-								_user$project$Main$MoveTeamUp(team)),
+							_0: _elm_lang$html$Html_Attributes$class('stat'),
 							_1: {ctor: '[]'}
 						},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('[up]'),
+							_0: _elm_lang$html$Html$text(
+								_user$project$Format$formatHeight(player.height)),
 							_1: {ctor: '[]'}
 						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$button,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(
-									_user$project$Main$MoveTeamDown(team)),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('[down]'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
+					_1: {ctor: '[]'}
 				}
-			});
-	};
-	var teams = A2(
-		_elm_lang$core$Basics_ops['++'],
-		_elm_lang$core$List$reverse(model.draftedTeams),
-		model.waitingTeams);
-	var teamDisplay = _elm_lang$core$Native_Utils.eq(
-		_elm_lang$core$List$length(model.draftedPlayers),
-		0) ? A2(_elm_lang$core$List$map, swap, teams) : A2(
-		_elm_lang$core$List$map,
-		_user$project$Main$viewTeamWithRoster(true),
-		teams);
-	return {
-		ctor: '::',
-		_0: A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$id('draftResults'),
-				_1: {ctor: '[]'}
-			},
-			teamDisplay),
-		_1: {
+			}
+		} : {
 			ctor: '::',
-			_0: restartButton,
+			_0: _elm_lang$html$Html$text(
+				_user$project$Players$playerName(player)),
 			_1: {ctor: '[]'}
-		}
-	};
-};
-var _user$project$Main$UndoDraft = {ctor: 'UndoDraft'};
-var _user$project$Main$FlipOrder = {ctor: 'FlipOrder'};
-var _user$project$Main$title = A2(
-	_elm_lang$html$Html$h1,
-	{ctor: '[]'},
-	{
-		ctor: '::',
-		_0: _elm_lang$html$Html$text('Parity Draft'),
-		_1: {
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
+		};
+		return A2(
+			_elm_lang$html$Html$li,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
 				{
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$button,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$FlipOrder),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('Invert Order'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$button,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$UndoDraft),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Undo'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
-				}),
-			_1: {ctor: '[]'}
-		}
+					_0: _elm_lang$html$Html_Attributes$class(
+						_user$project$Players$className(player)),
+					_1: {ctor: '[]'}
+				},
+				attributes),
+			content);
 	});
-var _user$project$Main$Draft = function (a) {
-	return {ctor: 'Draft', _0: a};
-};
-var _user$project$Main$draftablePlayer = function (player) {
+var _user$project$View$draftablePlayer = function (player) {
 	return A3(
-		_user$project$Main$viewPlayerDetail,
+		_user$project$View$viewPlayerDetail,
 		{
 			ctor: '::',
 			_0: _elm_lang$html$Html_Attributes$class('draftable'),
 			_1: {
 				ctor: '::',
 				_0: _elm_lang$html$Html_Events$onClick(
-					_user$project$Main$Draft(player)),
+					_user$project$Update$Draft(player)),
 				_1: {ctor: '[]'}
 			}
 		},
 		true,
 		player);
 };
-var _user$project$Main$viewUndraftedPlayerList = function (list) {
+var _user$project$View$viewUndraftedPlayerList = function (fullList) {
 	var header = A2(
 		_elm_lang$html$Html$h2,
 		{ctor: '[]'},
@@ -9865,7 +9718,7 @@ var _user$project$Main$viewUndraftedPlayerList = function (list) {
 					_0: _elm_lang$html$Html$text('Sorting'),
 					_1: {
 						ctor: '::',
-						_0: _user$project$Main$viewPlayerSortMenu,
+						_0: _user$project$View$viewPlayerSortMenu,
 						_1: {ctor: '[]'}
 					}
 				}),
@@ -9875,6 +9728,13 @@ var _user$project$Main$viewUndraftedPlayerList = function (list) {
 				_1: {ctor: '[]'}
 			}
 		});
+	var females = A2(
+		_elm_lang$core$List$filter,
+		function (p) {
+			return _elm_lang$core$Native_Utils.eq(p.gender, 'Female');
+		},
+		fullList);
+	var players = _elm_lang$core$List$isEmpty(females) ? fullList : females;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -9907,67 +9767,633 @@ var _user$project$Main$viewUndraftedPlayerList = function (list) {
 								_0: _elm_lang$html$Html_Attributes$class('players'),
 								_1: {ctor: '[]'}
 							},
-							A2(_elm_lang$core$List$map, _user$project$Main$draftablePlayer, list)),
+							A2(_elm_lang$core$List$map, _user$project$View$draftablePlayer, players)),
 						_1: {ctor: '[]'}
 					}),
 				_1: {ctor: '[]'}
 			}
 		});
 };
-var _user$project$Main$viewDraftInProgress = function (model) {
-	return {
-		ctor: '::',
-		_0: _user$project$Main$viewWaitingTeams(model.waitingTeams),
-		_1: {
+var _user$project$View$viewTeamWithRoster = F2(
+	function (format, team) {
+		var _p1 = format ? {
+			ctor: '_Tuple2',
+			_0: A2(
+				_elm_lang$html$Html$h3,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(team.gm),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		} : {
+			ctor: '_Tuple2',
+			_0: _elm_lang$html$Html$text(''),
+			_1: {ctor: '[]'}
+		};
+		var start = _p1._0;
+		var end = _p1._1;
+		var viewPlayers = A2(
+			_elm_lang$core$List$map,
+			A2(
+				_user$project$View$viewPlayerDetail,
+				{ctor: '[]'},
+				false),
+			_elm_lang$core$List$reverse(team.players));
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('team'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: start,
+				_1: A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$ul,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('players'),
+								_1: {ctor: '[]'}
+							},
+							viewPlayers),
+						_1: {ctor: '[]'}
+					},
+					end)
+			});
+	});
+var _user$project$View$viewWaitingTeams = F2(
+	function (draftedTeams, waitingTeams) {
+		var display = function (team) {
+			return A2(
+				_elm_lang$html$Html$li,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(team.gm),
+					_1: {ctor: '[]'}
+				});
+		};
+		var draftedItems = A2(_elm_lang$core$List$map, display, draftedTeams);
+		var waitingItems = function () {
+			var _p2 = _elm_lang$core$List$tail(waitingTeams);
+			if (_p2.ctor === 'Just') {
+				return A2(_elm_lang$core$List$map, display, _p2._0);
+			} else {
+				return {ctor: '[]'};
+			}
+		}();
+		var _p3 = function () {
+			var _p4 = _elm_lang$core$List$head(waitingTeams);
+			if (_p4.ctor === 'Just') {
+				var _p5 = _p4._0;
+				return {
+					ctor: '_Tuple2',
+					_0: A2(_user$project$View$viewTeamWithRoster, false, _p5),
+					_1: _p5.gm
+				};
+			} else {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$html$Html$text('no team'),
+					_1: 'no team'
+				};
+			}
+		}();
+		var teamDisplay = _p3._0;
+		var teamName = _p3._1;
+		var teamList = A2(
+			_elm_lang$html$Html$ul,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('teams'),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				draftedItems,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$li,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('currentTeam'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(teamName),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					},
+					waitingItems)));
+		var upNext = {
 			ctor: '::',
-			_0: _user$project$Main$viewUndraftedPlayerList(model.undraftedPlayers),
+			_0: A2(
+				_elm_lang$html$Html$h3,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Draft Order'),
+					_1: {ctor: '[]'}
+				}),
 			_1: {
 				ctor: '::',
-				_0: A2(_user$project$Main$viewTeamsWithLatest, model.round, model.draftedTeams),
+				_0: teamList,
+				_1: {ctor: '[]'}
+			}
+		};
+		return A3(
+			_user$project$View$segment,
+			A2(_elm_lang$core$Basics_ops['++'], 'Drafting: ', teamName),
+			'current',
+			{ctor: '::', _0: teamDisplay, _1: upNext});
+	});
+var _user$project$View$viewTeamsWithLatest = F2(
+	function (round, teams) {
+		var title = A2(
+			_elm_lang$core$Basics_ops['++'],
+			'Round ',
+			_elm_lang$core$Basics$toString(round));
+		var formatPlayer = function (player) {
+			var className = _user$project$Players$className(player);
+			return A2(
+				_elm_lang$html$Html$dd,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class(className),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						_user$project$Players$playerName(player)),
+					_1: {ctor: '[]'}
+				});
+		};
+		var viewPlayers = function (team) {
+			var _p6 = _elm_lang$core$List$head(team.players);
+			if (_p6.ctor === 'Just') {
+				return A2(
+					_elm_lang$html$Html$dt,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(team.gm),
+						_1: {
+							ctor: '::',
+							_0: formatPlayer(_p6._0),
+							_1: {ctor: '[]'}
+						}
+					});
+			} else {
+				return _elm_lang$html$Html$text(title);
+			}
+		};
+		var teamList = A2(_elm_lang$core$List$map, viewPlayers, teams);
+		return A3(
+			_user$project$View$segment,
+			title,
+			'latest',
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$dl,
+					{ctor: '[]'},
+					teamList),
+				_1: {ctor: '[]'}
+			});
+	});
+var _user$project$View$viewDraftHistory = function (model) {
+	return {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$id('historyView'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A3(_user$project$View$viewPlayerList, 'Draft History', _user$project$View$viewDraftedPlayer, model.draftedPlayers),
+				_1: {
+					ctor: '::',
+					_0: A3(
+						_user$project$View$viewPlayerList,
+						'Draft Order',
+						_user$project$View$viewDraftedPlayer,
+						_elm_lang$core$List$reverse(model.draftedPlayers)),
+					_1: {ctor: '[]'}
+				}
+			}),
+		_1: {ctor: '[]'}
+	};
+};
+var _user$project$View$viewDraftComplete = function (model) {
+	var viewPreDraft = function (team) {
+		return A2(
+			_elm_lang$html$Html$li,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(team.gm),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(' ( '),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(
+									_user$project$Update$MoveTeamUp(team)),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(' ▲ '),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(
+										_user$project$Update$MoveTeamDown(team)),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(' ▼ '),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(' )'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			});
+	};
+	var teams = A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$List$reverse(model.draftedTeams),
+		model.waitingTeams);
+	return _elm_lang$core$Native_Utils.eq(
+		_elm_lang$core$List$length(model.draftedPlayers),
+		0) ? {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$h2,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Draft Order'),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$ol,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$id('preDraft'),
+					_1: {ctor: '[]'}
+				},
+				A2(_elm_lang$core$List$map, viewPreDraft, teams)),
+			_1: {ctor: '[]'}
+		}
+	} : {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$id('draftResults'),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$List$map,
+				_user$project$View$viewTeamWithRoster(true),
+				teams)),
+		_1: {ctor: '[]'}
+	};
+};
+var _user$project$View$viewDraftInProgress = function (model) {
+	return {
+		ctor: '::',
+		_0: A2(_user$project$View$viewWaitingTeams, model.draftedTeams, model.waitingTeams),
+		_1: {
+			ctor: '::',
+			_0: _user$project$View$viewUndraftedPlayerList(model.undraftedPlayers),
+			_1: {
+				ctor: '::',
+				_0: A2(_user$project$View$viewTeamsWithLatest, model.round, model.draftedTeams),
 				_1: {ctor: '[]'}
 			}
 		}
 	};
 };
-var _user$project$Main$viewDraftContent = function (model) {
-	return _elm_lang$core$List$isEmpty(model.undraftedPlayers) ? _user$project$Main$viewDraftComplete(model) : _user$project$Main$viewDraftInProgress(model);
+var _user$project$View$viewDraftContent = function (model) {
+	return _elm_lang$core$List$isEmpty(model.undraftedPlayers) ? _user$project$View$viewDraftComplete(model) : _user$project$View$viewDraftInProgress(model);
 };
-var _user$project$Main$viewTabContent = function (model) {
-	var _p19 = model.currentView;
-	switch (_p19) {
+var _user$project$View$viewTabContent = function (model) {
+	var _p7 = model.currentView;
+	switch (_p7) {
 		case 1:
-			return _user$project$Main$viewDraftComplete(model);
+			return _user$project$View$viewDraftComplete(model);
 		case 2:
-			return _user$project$Main$viewDraftHistory(model);
+			return _user$project$View$viewDraftHistory(model);
 		default:
-			return _user$project$Main$viewDraftContent(model);
+			return _user$project$View$viewDraftContent(model);
 	}
 };
-var _user$project$Main$view = function (model) {
+var _user$project$View$viewTabNav = function (currentView) {
+	var buildTab = F2(
+		function (tabView, title) {
+			var className = _elm_lang$core$Native_Utils.eq(tabView, currentView) ? 'active' : '';
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class(className),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_user$project$Update$ChangeView(tabView)),
+						_1: {ctor: '[]'}
+					}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(title),
+					_1: {ctor: '[]'}
+				});
+		});
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('nav'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(buildTab, _user$project$Model$DraftView, 'Draft'),
+			_1: {
+				ctor: '::',
+				_0: A2(buildTab, _user$project$Model$TeamView, 'Teams'),
+				_1: {
+					ctor: '::',
+					_0: A2(buildTab, _user$project$Model$HistoryView, 'History'),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _user$project$View$onClickStopPropagation = function (msg) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'click',
+		_elm_lang$core$Native_Utils.update(
+			_elm_lang$html$Html_Events$defaultOptions,
+			{stopPropagation: true}),
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _user$project$View$menuItem = F2(
+	function (msg, label) {
+		return A2(
+			_elm_lang$html$Html$li,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$button,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(msg),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(label),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _user$project$View$viewMenu = function (showMenu) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('menuBackdrop'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onClick(
+					_user$project$Update$ToggleMenu(false)),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$hidden(!showMenu),
+					_1: {ctor: '[]'}
+				}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$id('menu'),
+					_1: {
+						ctor: '::',
+						_0: _user$project$View$onClickStopPropagation(_user$project$Update$NoOp),
+						_1: {ctor: '[]'}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$h1,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Menu'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$ul,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(_user$project$View$menuItem, _user$project$Update$FlipOrder, 'Flip Draft Order'),
+								_1: {
+									ctor: '::',
+									_0: A2(_user$project$View$menuItem, _user$project$Update$UndoDraft, 'Undo Player Selection'),
+									_1: {
+										ctor: '::',
+										_0: A2(_user$project$View$menuItem, _user$project$Update$RestartDraft, 'Restart Draft'),
+										_1: {
+											ctor: '::',
+											_0: A2(_user$project$View$menuItem, _user$project$Update$ResetApp, 'Reload Everything'),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$View$showMenuButton = function (showMenu) {
+	return A2(
+		_elm_lang$html$Html$button,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('menuButton'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onClick(
+					_user$project$Update$ToggleMenu(!showMenu)),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text('Menu'),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$View$title = A2(
+	_elm_lang$html$Html$h1,
+	{ctor: '[]'},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('Parity Draft'),
+		_1: {ctor: '[]'}
+	});
+var _user$project$View$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
 		{
 			ctor: '::',
-			_0: _user$project$Main$styles,
+			_0: _user$project$View$title,
 			_1: {
 				ctor: '::',
-				_0: _user$project$Main$title,
+				_0: _user$project$View$showMenuButton(model.showMenu),
 				_1: {
 					ctor: '::',
-					_0: _user$project$Main$viewTabNav(
-						_user$project$Main$tabViewFromInt(model.currentView)),
-					_1: _user$project$Main$viewTabContent(model)
+					_0: _user$project$View$viewMenu(model.showMenu),
+					_1: {
+						ctor: '::',
+						_0: _user$project$View$viewTabNav(
+							_user$project$Model$tabViewFromInt(model.currentView)),
+						_1: _user$project$View$viewTabContent(model)
+					}
 				}
 			}
 		});
 };
+
+var _user$project$Main$init = function (savedModel) {
+	return A2(
+		_elm_lang$core$Platform_Cmd_ops['!'],
+		A2(_elm_lang$core$Maybe$withDefault, _user$project$Model$initModel, savedModel),
+		{ctor: '[]'});
+};
+var _user$project$Main$saveModel = _elm_lang$core$Native_Platform.outgoingPort(
+	'saveModel',
+	function (v) {
+		return {
+			undraftedPlayers: _elm_lang$core$Native_List.toArray(v.undraftedPlayers).map(
+				function (v) {
+					return {firstName: v.firstName, lastName: v.lastName, gender: v.gender, height: v.height, rating: v.rating};
+				}),
+			draftedPlayers: _elm_lang$core$Native_List.toArray(v.draftedPlayers).map(
+				function (v) {
+					return [
+						{firstName: v._0.firstName, lastName: v._0.lastName, gender: v._0.gender, height: v._0.height, rating: v._0.rating},
+						v._1
+					];
+				}),
+			waitingTeams: _elm_lang$core$Native_List.toArray(v.waitingTeams).map(
+				function (v) {
+					return {
+						gm: v.gm,
+						players: _elm_lang$core$Native_List.toArray(v.players).map(
+							function (v) {
+								return {firstName: v.firstName, lastName: v.lastName, gender: v.gender, height: v.height, rating: v.rating};
+							}),
+						draftOrder: v.draftOrder
+					};
+				}),
+			draftedTeams: _elm_lang$core$Native_List.toArray(v.draftedTeams).map(
+				function (v) {
+					return {
+						gm: v.gm,
+						players: _elm_lang$core$Native_List.toArray(v.players).map(
+							function (v) {
+								return {firstName: v.firstName, lastName: v.lastName, gender: v.gender, height: v.height, rating: v.rating};
+							}),
+						draftOrder: v.draftOrder
+					};
+				}),
+			round: v.round,
+			currentView: v.currentView,
+			showMenu: v.showMenu
+		};
+	});
+var _user$project$Main$updateWithStorage = F2(
+	function (msg, model) {
+		var _p0 = A2(_user$project$Update$update, msg, model);
+		var newModel = _p0._0;
+		var cmds = _p0._1;
+		return {
+			ctor: '_Tuple2',
+			_0: newModel,
+			_1: _elm_lang$core$Platform_Cmd$batch(
+				{
+					ctor: '::',
+					_0: _user$project$Main$saveModel(
+						_elm_lang$core$Native_Utils.update(
+							newModel,
+							{showMenu: false})),
+					_1: {
+						ctor: '::',
+						_0: cmds,
+						_1: {ctor: '[]'}
+					}
+				})
+		};
+	});
 var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 	{
 		init: _user$project$Main$init,
-		view: _user$project$Main$view,
+		view: _user$project$View$view,
 		update: _user$project$Main$updateWithStorage,
-		subscriptions: function (_p20) {
+		subscriptions: function (_p1) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})(
@@ -9994,31 +10420,31 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 												function (round) {
 													return A2(
 														_elm_lang$core$Json_Decode$andThen,
-														function (undraftedPlayers) {
+														function (showMenu) {
 															return A2(
 																_elm_lang$core$Json_Decode$andThen,
-																function (waitingTeams) {
-																	return _elm_lang$core$Json_Decode$succeed(
-																		{currentView: currentView, draftedPlayers: draftedPlayers, draftedTeams: draftedTeams, round: round, undraftedPlayers: undraftedPlayers, waitingTeams: waitingTeams});
-																},
-																A2(
-																	_elm_lang$core$Json_Decode$field,
-																	'waitingTeams',
-																	_elm_lang$core$Json_Decode$list(
+																function (undraftedPlayers) {
+																	return A2(
+																		_elm_lang$core$Json_Decode$andThen,
+																		function (waitingTeams) {
+																			return _elm_lang$core$Json_Decode$succeed(
+																				{currentView: currentView, draftedPlayers: draftedPlayers, draftedTeams: draftedTeams, round: round, showMenu: showMenu, undraftedPlayers: undraftedPlayers, waitingTeams: waitingTeams});
+																		},
 																		A2(
-																			_elm_lang$core$Json_Decode$andThen,
-																			function (draftOrder) {
-																				return A2(
+																			_elm_lang$core$Json_Decode$field,
+																			'waitingTeams',
+																			_elm_lang$core$Json_Decode$list(
+																				A2(
 																					_elm_lang$core$Json_Decode$andThen,
-																					function (gm) {
+																					function (draftOrder) {
 																						return A2(
 																							_elm_lang$core$Json_Decode$andThen,
-																							function (name) {
+																							function (gm) {
 																								return A2(
 																									_elm_lang$core$Json_Decode$andThen,
 																									function (players) {
 																										return _elm_lang$core$Json_Decode$succeed(
-																											{draftOrder: draftOrder, gm: gm, name: name, players: players});
+																											{draftOrder: draftOrder, gm: gm, players: players});
 																									},
 																									A2(
 																										_elm_lang$core$Json_Decode$field,
@@ -10032,53 +10458,63 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 																														function (gender) {
 																															return A2(
 																																_elm_lang$core$Json_Decode$andThen,
-																																function (lastName) {
+																																function (height) {
 																																	return A2(
 																																		_elm_lang$core$Json_Decode$andThen,
-																																		function (rating) {
-																																			return _elm_lang$core$Json_Decode$succeed(
-																																				{firstName: firstName, gender: gender, lastName: lastName, rating: rating});
+																																		function (lastName) {
+																																			return A2(
+																																				_elm_lang$core$Json_Decode$andThen,
+																																				function (rating) {
+																																					return _elm_lang$core$Json_Decode$succeed(
+																																						{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
+																																				},
+																																				A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
 																																		},
-																																		A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
+																																		A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
 																																},
-																																A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
+																																A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
 																														},
 																														A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
 																												},
 																												A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
 																							},
-																							A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string));
+																							A2(_elm_lang$core$Json_Decode$field, 'gm', _elm_lang$core$Json_Decode$string));
 																					},
-																					A2(_elm_lang$core$Json_Decode$field, 'gm', _elm_lang$core$Json_Decode$string));
-																			},
-																			A2(_elm_lang$core$Json_Decode$field, 'draftOrder', _elm_lang$core$Json_Decode$int)))));
-														},
-														A2(
-															_elm_lang$core$Json_Decode$field,
-															'undraftedPlayers',
-															_elm_lang$core$Json_Decode$list(
+																					A2(_elm_lang$core$Json_Decode$field, 'draftOrder', _elm_lang$core$Json_Decode$int)))));
+																},
 																A2(
-																	_elm_lang$core$Json_Decode$andThen,
-																	function (firstName) {
-																		return A2(
+																	_elm_lang$core$Json_Decode$field,
+																	'undraftedPlayers',
+																	_elm_lang$core$Json_Decode$list(
+																		A2(
 																			_elm_lang$core$Json_Decode$andThen,
-																			function (gender) {
+																			function (firstName) {
 																				return A2(
 																					_elm_lang$core$Json_Decode$andThen,
-																					function (lastName) {
+																					function (gender) {
 																						return A2(
 																							_elm_lang$core$Json_Decode$andThen,
-																							function (rating) {
-																								return _elm_lang$core$Json_Decode$succeed(
-																									{firstName: firstName, gender: gender, lastName: lastName, rating: rating});
+																							function (height) {
+																								return A2(
+																									_elm_lang$core$Json_Decode$andThen,
+																									function (lastName) {
+																										return A2(
+																											_elm_lang$core$Json_Decode$andThen,
+																											function (rating) {
+																												return _elm_lang$core$Json_Decode$succeed(
+																													{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
+																											},
+																											A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
+																									},
+																									A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
 																							},
-																							A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
+																							A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
 																					},
-																					A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
+																					A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
 																			},
-																			A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
-																	},
-																	A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
+																			A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
+														},
+														A2(_elm_lang$core$Json_Decode$field, 'showMenu', _elm_lang$core$Json_Decode$bool));
 												},
 												A2(_elm_lang$core$Json_Decode$field, 'round', _elm_lang$core$Json_Decode$int));
 										},
@@ -10094,23 +10530,23 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 															function (gm) {
 																return A2(
 																	_elm_lang$core$Json_Decode$andThen,
-																	function (name) {
-																		return A2(
-																			_elm_lang$core$Json_Decode$andThen,
-																			function (players) {
-																				return _elm_lang$core$Json_Decode$succeed(
-																					{draftOrder: draftOrder, gm: gm, name: name, players: players});
-																			},
+																	function (players) {
+																		return _elm_lang$core$Json_Decode$succeed(
+																			{draftOrder: draftOrder, gm: gm, players: players});
+																	},
+																	A2(
+																		_elm_lang$core$Json_Decode$field,
+																		'players',
+																		_elm_lang$core$Json_Decode$list(
 																			A2(
-																				_elm_lang$core$Json_Decode$field,
-																				'players',
-																				_elm_lang$core$Json_Decode$list(
-																					A2(
+																				_elm_lang$core$Json_Decode$andThen,
+																				function (firstName) {
+																					return A2(
 																						_elm_lang$core$Json_Decode$andThen,
-																						function (firstName) {
+																						function (gender) {
 																							return A2(
 																								_elm_lang$core$Json_Decode$andThen,
-																								function (gender) {
+																								function (height) {
 																									return A2(
 																										_elm_lang$core$Json_Decode$andThen,
 																										function (lastName) {
@@ -10118,17 +10554,17 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 																												_elm_lang$core$Json_Decode$andThen,
 																												function (rating) {
 																													return _elm_lang$core$Json_Decode$succeed(
-																														{firstName: firstName, gender: gender, lastName: lastName, rating: rating});
+																														{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
 																												},
 																												A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
 																										},
 																										A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
 																								},
-																								A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
+																								A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
 																						},
-																						A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
-																	},
-																	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string));
+																						A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
+																				},
+																				A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
 															},
 															A2(_elm_lang$core$Json_Decode$field, 'gm', _elm_lang$core$Json_Decode$string));
 													},
@@ -10160,16 +10596,21 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 															function (gender) {
 																return A2(
 																	_elm_lang$core$Json_Decode$andThen,
-																	function (lastName) {
+																	function (height) {
 																		return A2(
 																			_elm_lang$core$Json_Decode$andThen,
-																			function (rating) {
-																				return _elm_lang$core$Json_Decode$succeed(
-																					{firstName: firstName, gender: gender, lastName: lastName, rating: rating});
+																			function (lastName) {
+																				return A2(
+																					_elm_lang$core$Json_Decode$andThen,
+																					function (rating) {
+																						return _elm_lang$core$Json_Decode$succeed(
+																							{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
+																					},
+																					A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
 																			},
-																			A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
+																			A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
 																	},
-																	A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
+																	A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
 															},
 															A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
 													},
