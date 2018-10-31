@@ -8989,7 +8989,7 @@ var _user$project$Players$allPlayersParsed = A2(
 		_ericgj$elm_csv_decode$Csv_Decode$decodeCsv,
 		_user$project$Players$playerDecoder,
 		_lovasoa$elm_csv$Csv$parse(_user$project$Players$allPlayersRaw)));
-var _user$project$Players$players = function () {
+var _user$project$Players$fullPlayerList = function () {
 	var parsedPlayers = _user$project$Players$allPlayersParsed;
 	var buildPlayers = A2(_user$project$Players$buildPlaceholderPlayers, 10 * 6, parsedPlayers);
 	return A2(
@@ -9057,7 +9057,7 @@ var _user$project$Teams$allTeams = {
 					_1: {
 						ctor: '::',
 						_0: {
-							gm: 'Kate Cav',
+							gm: 'Kate Cavallaro',
 							players: {ctor: '[]'},
 							draftOrder: 6
 						},
@@ -9100,7 +9100,7 @@ var _user$project$Teams$allTeams = {
 		}
 	}
 };
-var _user$project$Teams$sortedTeams = function (teams) {
+var _user$project$Teams$sortTeams = function (teams) {
 	return A2(
 		_elm_lang$core$List$sortBy,
 		function (_) {
@@ -9108,7 +9108,7 @@ var _user$project$Teams$sortedTeams = function (teams) {
 		},
 		teams);
 };
-var _user$project$Teams$teams = _user$project$Teams$sortedTeams(_user$project$Teams$allTeams);
+var _user$project$Teams$fullTeamList = _user$project$Teams$sortTeams(_user$project$Teams$allTeams);
 var _user$project$Teams$Team = F3(
 	function (a, b, c) {
 		return {gm: a, players: b, draftOrder: c};
@@ -9126,17 +9126,18 @@ var _user$project$Model$tabViewToInt = function (view) {
 	}
 };
 var _user$project$Model$initModel = {
-	undraftedPlayers: _user$project$Players$players,
+	undraftedPlayers: _user$project$Players$fullPlayerList,
 	draftedPlayers: {ctor: '[]'},
-	waitingTeams: _user$project$Teams$teams,
+	waitingTeams: _user$project$Teams$fullTeamList,
 	draftedTeams: {ctor: '[]'},
 	round: 1,
 	currentView: 0,
-	showMenu: false
+	showMenu: false,
+	playerSearch: ''
 };
-var _user$project$Model$Model = F7(
-	function (a, b, c, d, e, f, g) {
-		return {undraftedPlayers: a, draftedPlayers: b, waitingTeams: c, draftedTeams: d, round: e, currentView: f, showMenu: g};
+var _user$project$Model$Model = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {undraftedPlayers: a, draftedPlayers: b, waitingTeams: c, draftedTeams: d, round: e, currentView: f, showMenu: g, playerSearch: h};
 	});
 var _user$project$Model$HistoryView = {ctor: 'HistoryView'};
 var _user$project$Model$TeamView = {ctor: 'TeamView'};
@@ -9265,7 +9266,7 @@ var _user$project$Update$undoDraft = function (model) {
 var _user$project$Update$undo = function (model) {
 	return _elm_lang$core$List$isEmpty(model.draftedPlayers) ? model : _user$project$Update$undoDraft(model);
 };
-var _user$project$Update$draftPlayer = F2(
+var _user$project$Update$assignDraftedPlayer = F2(
 	function (player, model) {
 		var draftingTeam = A2(
 			_user$project$Update$addPlayer,
@@ -9305,8 +9306,24 @@ var _user$project$Update$draftPlayer = F2(
 				},
 				waitingTeams: updatedWaiting,
 				draftedTeams: newDrafted,
-				round: round
+				round: round,
+				playerSearch: ''
 			});
+	});
+var _user$project$Update$draftPlayer = F2(
+	function (player, model) {
+		var gms = A2(
+			_elm_lang$core$List$map,
+			function (_) {
+				return _.gm;
+			},
+			_user$project$Teams$fullTeamList);
+		var draftingTeam = A2(
+			_elm_lang$core$Maybe$withDefault,
+			_user$project$Update$dummyTeam,
+			_elm_lang$core$List$head(model.waitingTeams));
+		var playerName = _user$project$Players$playerName(player);
+		return (A2(_elm_lang$core$List$member, playerName, gms) && (!_elm_lang$core$Native_Utils.eq(draftingTeam.gm, playerName))) ? model : A2(_user$project$Update$assignDraftedPlayer, player, model);
 	});
 var _user$project$Update$moveTeamDown = F2(
 	function (team, model) {
@@ -9325,7 +9342,7 @@ var _user$project$Update$moveTeamDown = F2(
 			_elm_lang$core$List$length(model.waitingTeams)) ? model : _elm_lang$core$Native_Utils.update(
 			model,
 			{
-				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
+				waitingTeams: _user$project$Teams$sortTeams(updatedTeams)
 			});
 	});
 var _user$project$Update$moveTeamUp = F2(
@@ -9343,7 +9360,7 @@ var _user$project$Update$moveTeamUp = F2(
 		return _elm_lang$core$Native_Utils.eq(team.draftOrder, 0) ? model : _elm_lang$core$Native_Utils.update(
 			model,
 			{
-				waitingTeams: _user$project$Teams$sortedTeams(updatedTeams)
+				waitingTeams: _user$project$Teams$sortTeams(updatedTeams)
 			});
 	});
 var _user$project$Update$resetDraft = function (model) {
@@ -9354,7 +9371,7 @@ var _user$project$Update$resetDraft = function (model) {
 				players: {ctor: '[]'}
 			});
 	};
-	var teams = _user$project$Teams$sortedTeams(
+	var teams = _user$project$Teams$sortTeams(
 		A2(
 			_elm_lang$core$List$map,
 			resetRoster,
@@ -9405,8 +9422,12 @@ var _user$project$Update$update = F2(
 					return _elm_lang$core$Native_Utils.update(
 						model,
 						{showMenu: _p8._0});
-				default:
+				case 'ResetApp':
 					return _user$project$Model$initModel;
+				default:
+					return _elm_lang$core$Native_Utils.update(
+						model,
+						{playerSearch: _p8._0});
 			}
 		}();
 		return A2(
@@ -9414,6 +9435,9 @@ var _user$project$Update$update = F2(
 			newModel,
 			{ctor: '[]'});
 	});
+var _user$project$Update$SearchPlayer = function (a) {
+	return {ctor: 'SearchPlayer', _0: a};
+};
 var _user$project$Update$ResetApp = {ctor: 'ResetApp'};
 var _user$project$Update$ToggleMenu = function (a) {
 	return {ctor: 'ToggleMenu', _0: a};
@@ -9700,80 +9724,130 @@ var _user$project$View$draftablePlayer = function (player) {
 		true,
 		player);
 };
-var _user$project$View$viewUndraftedPlayerList = function (fullList) {
-	var header = A2(
-		_elm_lang$html$Html$h2,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$span,
-				{
+var _user$project$View$viewUndraftedPlayerList = F2(
+	function (search, fullList) {
+		var playerSearch = A2(
+			_elm_lang$html$Html$input,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$type_('search'),
+				_1: {
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$id('playerSortHeader'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('Sorting'),
+					_0: _elm_lang$html$Html_Attributes$placeholder('search players...'),
 					_1: {
 						ctor: '::',
-						_0: _user$project$View$viewPlayerSortMenu,
-						_1: {ctor: '[]'}
+						_0: _elm_lang$html$Html_Attributes$value(search),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$autofocus(true),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onInput(_user$project$Update$SearchPlayer),
+								_1: {ctor: '[]'}
+							}
+						}
 					}
-				}),
-			_1: {
+				}
+			},
+			{ctor: '[]'});
+		var header = A2(
+			_elm_lang$html$Html$h2,
+			{ctor: '[]'},
+			{
 				ctor: '::',
 				_0: _elm_lang$html$Html$text('Players'),
 				_1: {ctor: '[]'}
-			}
-		});
-	var females = A2(
-		_elm_lang$core$List$filter,
-		function (p) {
-			return _elm_lang$core$Native_Utils.eq(p.gender, 'Female');
-		},
-		fullList);
-	var players = _elm_lang$core$List$isEmpty(females) ? fullList : females;
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('segment'),
-			_1: {
+			});
+		var matches = function (player) {
+			return A2(
+				_elm_lang$core$String$contains,
+				_elm_lang$core$String$toUpper(search),
+				_elm_lang$core$String$toUpper(
+					_user$project$Players$playerName(player)));
+		};
+		var females = A2(
+			_elm_lang$core$List$filter,
+			function (p) {
+				return _elm_lang$core$Native_Utils.eq(p.gender, 'Female');
+			},
+			fullList);
+		var players = A2(
+			_elm_lang$core$List$filter,
+			matches,
+			_elm_lang$core$List$isEmpty(females) ? fullList : females);
+		return A2(
+			_elm_lang$html$Html$div,
+			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('undrafted'),
-				_1: {ctor: '[]'}
-			}
-		},
-		{
-			ctor: '::',
-			_0: header,
-			_1: {
+				_0: _elm_lang$html$Html_Attributes$class('segment'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('undrafted'),
+					_1: {ctor: '[]'}
+				}
+			},
+			{
 				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('content'),
-						_1: {ctor: '[]'}
-					},
-					{
+				_0: header,
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('playerConfig'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: playerSearch,
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$span,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$id('playerSortHeader'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('[Change Sorting]'),
+										_1: {
+											ctor: '::',
+											_0: _user$project$View$viewPlayerSortMenu,
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$ol,
+							_elm_lang$html$Html$div,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('players'),
+								_0: _elm_lang$html$Html_Attributes$class('content'),
 								_1: {ctor: '[]'}
 							},
-							A2(_elm_lang$core$List$map, _user$project$View$draftablePlayer, players)),
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$ol,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('players'),
+										_1: {ctor: '[]'}
+									},
+									A2(_elm_lang$core$List$map, _user$project$View$draftablePlayer, players)),
+								_1: {ctor: '[]'}
+							}),
 						_1: {ctor: '[]'}
-					}),
-				_1: {ctor: '[]'}
-			}
-		});
-};
+					}
+				}
+			});
+	});
 var _user$project$View$viewTeamWithRoster = F2(
 	function (format, team) {
 		var _p1 = format ? {
@@ -10101,7 +10175,7 @@ var _user$project$View$viewDraftInProgress = function (model) {
 		_0: A2(_user$project$View$viewWaitingTeams, model.draftedTeams, model.waitingTeams),
 		_1: {
 			ctor: '::',
-			_0: _user$project$View$viewUndraftedPlayerList(model.undraftedPlayers),
+			_0: A2(_user$project$View$viewUndraftedPlayerList, model.playerSearch, model.undraftedPlayers),
 			_1: {
 				ctor: '::',
 				_0: A2(_user$project$View$viewTeamsWithLatest, model.round, model.draftedTeams),
@@ -10362,7 +10436,8 @@ var _user$project$Main$saveModel = _elm_lang$core$Native_Platform.outgoingPort(
 				}),
 			round: v.round,
 			currentView: v.currentView,
-			showMenu: v.showMenu
+			showMenu: v.showMenu,
+			playerSearch: v.playerSearch
 		};
 	});
 var _user$project$Main$updateWithStorage = F2(
@@ -10370,16 +10445,16 @@ var _user$project$Main$updateWithStorage = F2(
 		var _p0 = A2(_user$project$Update$update, msg, model);
 		var newModel = _p0._0;
 		var cmds = _p0._1;
+		var cleanModel = _elm_lang$core$Native_Utils.update(
+			newModel,
+			{showMenu: false});
 		return {
 			ctor: '_Tuple2',
 			_0: newModel,
 			_1: _elm_lang$core$Platform_Cmd$batch(
 				{
 					ctor: '::',
-					_0: _user$project$Main$saveModel(
-						_elm_lang$core$Native_Utils.update(
-							newModel,
-							{showMenu: false})),
+					_0: _user$project$Main$saveModel(cleanModel),
 					_1: {
 						ctor: '::',
 						_0: cmds,
@@ -10417,106 +10492,111 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 										function (draftedTeams) {
 											return A2(
 												_elm_lang$core$Json_Decode$andThen,
-												function (round) {
+												function (playerSearch) {
 													return A2(
 														_elm_lang$core$Json_Decode$andThen,
-														function (showMenu) {
+														function (round) {
 															return A2(
 																_elm_lang$core$Json_Decode$andThen,
-																function (undraftedPlayers) {
+																function (showMenu) {
 																	return A2(
 																		_elm_lang$core$Json_Decode$andThen,
-																		function (waitingTeams) {
-																			return _elm_lang$core$Json_Decode$succeed(
-																				{currentView: currentView, draftedPlayers: draftedPlayers, draftedTeams: draftedTeams, round: round, showMenu: showMenu, undraftedPlayers: undraftedPlayers, waitingTeams: waitingTeams});
+																		function (undraftedPlayers) {
+																			return A2(
+																				_elm_lang$core$Json_Decode$andThen,
+																				function (waitingTeams) {
+																					return _elm_lang$core$Json_Decode$succeed(
+																						{currentView: currentView, draftedPlayers: draftedPlayers, draftedTeams: draftedTeams, playerSearch: playerSearch, round: round, showMenu: showMenu, undraftedPlayers: undraftedPlayers, waitingTeams: waitingTeams});
+																				},
+																				A2(
+																					_elm_lang$core$Json_Decode$field,
+																					'waitingTeams',
+																					_elm_lang$core$Json_Decode$list(
+																						A2(
+																							_elm_lang$core$Json_Decode$andThen,
+																							function (draftOrder) {
+																								return A2(
+																									_elm_lang$core$Json_Decode$andThen,
+																									function (gm) {
+																										return A2(
+																											_elm_lang$core$Json_Decode$andThen,
+																											function (players) {
+																												return _elm_lang$core$Json_Decode$succeed(
+																													{draftOrder: draftOrder, gm: gm, players: players});
+																											},
+																											A2(
+																												_elm_lang$core$Json_Decode$field,
+																												'players',
+																												_elm_lang$core$Json_Decode$list(
+																													A2(
+																														_elm_lang$core$Json_Decode$andThen,
+																														function (firstName) {
+																															return A2(
+																																_elm_lang$core$Json_Decode$andThen,
+																																function (gender) {
+																																	return A2(
+																																		_elm_lang$core$Json_Decode$andThen,
+																																		function (height) {
+																																			return A2(
+																																				_elm_lang$core$Json_Decode$andThen,
+																																				function (lastName) {
+																																					return A2(
+																																						_elm_lang$core$Json_Decode$andThen,
+																																						function (rating) {
+																																							return _elm_lang$core$Json_Decode$succeed(
+																																								{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
+																																						},
+																																						A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
+																																				},
+																																				A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
+																																		},
+																																		A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
+																																},
+																																A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
+																														},
+																														A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
+																									},
+																									A2(_elm_lang$core$Json_Decode$field, 'gm', _elm_lang$core$Json_Decode$string));
+																							},
+																							A2(_elm_lang$core$Json_Decode$field, 'draftOrder', _elm_lang$core$Json_Decode$int)))));
 																		},
 																		A2(
 																			_elm_lang$core$Json_Decode$field,
-																			'waitingTeams',
+																			'undraftedPlayers',
 																			_elm_lang$core$Json_Decode$list(
 																				A2(
 																					_elm_lang$core$Json_Decode$andThen,
-																					function (draftOrder) {
+																					function (firstName) {
 																						return A2(
 																							_elm_lang$core$Json_Decode$andThen,
-																							function (gm) {
+																							function (gender) {
 																								return A2(
 																									_elm_lang$core$Json_Decode$andThen,
-																									function (players) {
-																										return _elm_lang$core$Json_Decode$succeed(
-																											{draftOrder: draftOrder, gm: gm, players: players});
-																									},
-																									A2(
-																										_elm_lang$core$Json_Decode$field,
-																										'players',
-																										_elm_lang$core$Json_Decode$list(
-																											A2(
-																												_elm_lang$core$Json_Decode$andThen,
-																												function (firstName) {
-																													return A2(
-																														_elm_lang$core$Json_Decode$andThen,
-																														function (gender) {
-																															return A2(
-																																_elm_lang$core$Json_Decode$andThen,
-																																function (height) {
-																																	return A2(
-																																		_elm_lang$core$Json_Decode$andThen,
-																																		function (lastName) {
-																																			return A2(
-																																				_elm_lang$core$Json_Decode$andThen,
-																																				function (rating) {
-																																					return _elm_lang$core$Json_Decode$succeed(
-																																						{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
-																																				},
-																																				A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
-																																		},
-																																		A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
-																																},
-																																A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
-																														},
-																														A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
-																												},
-																												A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
-																							},
-																							A2(_elm_lang$core$Json_Decode$field, 'gm', _elm_lang$core$Json_Decode$string));
-																					},
-																					A2(_elm_lang$core$Json_Decode$field, 'draftOrder', _elm_lang$core$Json_Decode$int)))));
-																},
-																A2(
-																	_elm_lang$core$Json_Decode$field,
-																	'undraftedPlayers',
-																	_elm_lang$core$Json_Decode$list(
-																		A2(
-																			_elm_lang$core$Json_Decode$andThen,
-																			function (firstName) {
-																				return A2(
-																					_elm_lang$core$Json_Decode$andThen,
-																					function (gender) {
-																						return A2(
-																							_elm_lang$core$Json_Decode$andThen,
-																							function (height) {
-																								return A2(
-																									_elm_lang$core$Json_Decode$andThen,
-																									function (lastName) {
+																									function (height) {
 																										return A2(
 																											_elm_lang$core$Json_Decode$andThen,
-																											function (rating) {
-																												return _elm_lang$core$Json_Decode$succeed(
-																													{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
+																											function (lastName) {
+																												return A2(
+																													_elm_lang$core$Json_Decode$andThen,
+																													function (rating) {
+																														return _elm_lang$core$Json_Decode$succeed(
+																															{firstName: firstName, gender: gender, height: height, lastName: lastName, rating: rating});
+																													},
+																													A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
 																											},
-																											A2(_elm_lang$core$Json_Decode$field, 'rating', _elm_lang$core$Json_Decode$int));
+																											A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
 																									},
-																									A2(_elm_lang$core$Json_Decode$field, 'lastName', _elm_lang$core$Json_Decode$string));
+																									A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
 																							},
-																							A2(_elm_lang$core$Json_Decode$field, 'height', _elm_lang$core$Json_Decode$int));
+																							A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
 																					},
-																					A2(_elm_lang$core$Json_Decode$field, 'gender', _elm_lang$core$Json_Decode$string));
-																			},
-																			A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
+																					A2(_elm_lang$core$Json_Decode$field, 'firstName', _elm_lang$core$Json_Decode$string)))));
+																},
+																A2(_elm_lang$core$Json_Decode$field, 'showMenu', _elm_lang$core$Json_Decode$bool));
 														},
-														A2(_elm_lang$core$Json_Decode$field, 'showMenu', _elm_lang$core$Json_Decode$bool));
+														A2(_elm_lang$core$Json_Decode$field, 'round', _elm_lang$core$Json_Decode$int));
 												},
-												A2(_elm_lang$core$Json_Decode$field, 'round', _elm_lang$core$Json_Decode$int));
+												A2(_elm_lang$core$Json_Decode$field, 'playerSearch', _elm_lang$core$Json_Decode$string));
 										},
 										A2(
 											_elm_lang$core$Json_Decode$field,
