@@ -13850,6 +13850,13 @@ var _user$project$Update$updateLocalMsg = F2(
 	});
 var _user$project$Update$update = F2(
 	function (rawMsg, model) {
+		var closeMenu = function (model) {
+			return _elm_lang$core$Tuple$first(
+				A2(
+					_user$project$Update$updateLocalMsg,
+					_user$project$Update$ToggleMenu(false),
+					model));
+		};
 		var msg = function () {
 			var _p12 = model.localState.hostingType;
 			if (_p12.ctor === 'View') {
@@ -13884,11 +13891,12 @@ var _user$project$Update$update = F2(
 			case 'FlipOrder':
 				return {
 					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							waitingTeams: _elm_lang$core$List$reverse(model.waitingTeams)
-						}),
+					_0: closeMenu(
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								waitingTeams: _elm_lang$core$List$reverse(model.waitingTeams)
+							})),
 					_1: _user$project$Update$uploadModel(model)
 				};
 			case 'UndoDraft':
@@ -13900,7 +13908,8 @@ var _user$project$Update$update = F2(
 			case 'RestartDraft':
 				return {
 					ctor: '_Tuple2',
-					_0: _user$project$Update$resetDraft(model),
+					_0: closeMenu(
+						_user$project$Update$resetDraft(model)),
 					_1: _user$project$Update$uploadModel(model)
 				};
 			case 'MoveTeamUp':
@@ -13927,13 +13936,15 @@ var _user$project$Update$update = F2(
 			case 'ResetApp':
 				return {
 					ctor: '_Tuple2',
-					_0: _user$project$Model$initModel(model.localState),
+					_0: closeMenu(
+						_user$project$Model$initModel(model.localState)),
 					_1: _user$project$Update$uploadModel(model)
 				};
 			default:
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_user$project$Update$updateDraftOrder, _p14._0, model),
+					_0: closeMenu(
+						A2(_user$project$Update$updateDraftOrder, _p14._0, model)),
 					_1: _user$project$Update$uploadModel(model)
 				};
 		}
