@@ -12950,8 +12950,7 @@ var _user$project$Players$buildPlaceholderPlayers = F3(
 				_elm_lang$core$List$filter,
 				_user$project$Players$isGender(gender),
 				parsedPlayers));
-		var overCount = A2(_elm_lang$core$Basics_ops['%'], playerCount, teamCount);
-		var targetCount = (!_elm_lang$core$Native_Utils.eq(overCount, 0)) ? (teamCount - overCount) : overCount;
+		var targetCount = (teamCount * 6) - playerCount;
 		var createDummy = F2(
 			function (gender, number) {
 				return {
@@ -12962,7 +12961,11 @@ var _user$project$Players$buildPlaceholderPlayers = F3(
 					lastName: A2(
 						_elm_lang$core$Basics_ops['++'],
 						'_',
-						_elm_lang$core$Basics$toString(number)),
+						A3(
+							_elm_lang$core$String$padLeft,
+							2,
+							_elm_lang$core$Native_Utils.chr('0'),
+							_elm_lang$core$Basics$toString(number))),
 					gender: gender,
 					height: 0,
 					rating: 0
@@ -13121,28 +13124,31 @@ var _user$project$Players$allPlayersParsed = A2(
 		_ericgj$elm_csv_decode$Csv_Decode$decodeCsv,
 		_user$project$Players$playerDecoder,
 		_lovasoa$elm_csv$Csv$parse(_user$project$Players$allPlayersRaw)));
-var _user$project$Players$fullPlayerList = function (teamCount) {
-	var parsedPlayers = _user$project$Players$allPlayersParsed;
-	var buildPlayers = A2(_user$project$Players$buildPlaceholderPlayers, teamCount, parsedPlayers);
-	return A2(
-		_elm_lang$core$List$sortWith,
-		_user$project$Players$compareByDesc(
-			function (_) {
-				return _.rating;
-			}),
-		A2(
+var _user$project$Players$buildPlayerList = F2(
+	function (teamCount, players) {
+		var buildPlayers = A2(_user$project$Players$buildPlaceholderPlayers, teamCount, players);
+		return A2(
 			_elm_lang$core$List$sortWith,
-			_user$project$Players$compareByAsc(
+			_user$project$Players$compareByDesc(
 				function (_) {
-					return _.lastName;
+					return _.rating;
 				}),
 			A2(
-				_elm_lang$core$Basics_ops['++'],
-				parsedPlayers,
+				_elm_lang$core$List$sortWith,
+				_user$project$Players$compareByAsc(
+					function (_) {
+						return _.lastName;
+					}),
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					buildPlayers(_user$project$Players$Female),
-					buildPlayers(_user$project$Players$Male)))));
+					players,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						buildPlayers(_user$project$Players$Female),
+						buildPlayers(_user$project$Players$Male)))));
+	});
+var _user$project$Players$defaultPlayerList = function (teamCount) {
+	return A2(_user$project$Players$buildPlayerList, teamCount, _user$project$Players$allPlayersParsed);
 };
 
 var _user$project$Teams$allTeams = {
@@ -13359,7 +13365,7 @@ var _user$project$Model$decodeDraftedPlayer = A3(
 	A2(_elm_lang$core$Json_Decode$field, 'team', _elm_lang$core$Json_Decode$string));
 var _user$project$Model$initModel = function (localState) {
 	return {
-		undraftedPlayers: _user$project$Players$fullPlayerList(
+		undraftedPlayers: _user$project$Players$defaultPlayerList(
 			_elm_lang$core$List$length(_user$project$Teams$fullTeamList)),
 		draftedPlayers: {ctor: '[]'},
 		waitingTeams: _user$project$Teams$fullTeamList,
@@ -13706,9 +13712,16 @@ var _user$project$Update$resetDraft = function (model) {
 				_elm_lang$core$Basics_ops['++'],
 				_elm_lang$core$List$reverse(model.draftedTeams),
 				model.waitingTeams)));
+	var players = A2(
+		_user$project$Players$buildPlayerList,
+		_elm_lang$core$List$length(teams),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			model.undraftedPlayers,
+			A2(_elm_lang$core$List$map, _elm_lang$core$Tuple$first, model.draftedPlayers)));
 	return _elm_lang$core$Native_Utils.update(
 		newModel,
-		{waitingTeams: teams});
+		{waitingTeams: teams, undraftedPlayers: players});
 };
 var _user$project$Update$UpdateDraftOrder = function (a) {
 	return {ctor: 'UpdateDraftOrder', _0: a};
