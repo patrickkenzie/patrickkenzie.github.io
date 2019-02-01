@@ -13745,23 +13745,26 @@ var _user$project$Update$LocalMsg = function (a) {
 };
 var _user$project$Update$NoOp = {ctor: 'NoOp'};
 var _user$project$Update$uploadModel = function (model) {
-	var _p8 = model.localState.hostingType;
-	switch (_p8.ctor) {
-		case 'Host':
-			return A2(
-				_elm_lang$http$Http$send,
-				_elm_lang$core$Basics$always(_user$project$Update$NoOp),
-				A3(
-					_elm_lang$http$Http$post,
-					_user$project$Update$draftUrl(_p8._0),
-					_elm_lang$http$Http$jsonBody(
-						_user$project$Model$encodeModel(model)),
-					_elm_lang$core$Json_Decode$string));
-		case 'View':
-			return _elm_lang$core$Platform_Cmd$none;
-		default:
-			return _elm_lang$core$Platform_Cmd$none;
-	}
+	var cmd = function () {
+		var _p8 = model.localState.hostingType;
+		switch (_p8.ctor) {
+			case 'Host':
+				return A2(
+					_elm_lang$http$Http$send,
+					_elm_lang$core$Basics$always(_user$project$Update$NoOp),
+					A3(
+						_elm_lang$http$Http$post,
+						_user$project$Update$draftUrl(_p8._0),
+						_elm_lang$http$Http$jsonBody(
+							_user$project$Model$encodeModel(model)),
+						_elm_lang$core$Json_Decode$string));
+			case 'View':
+				return _elm_lang$core$Platform_Cmd$none;
+			default:
+				return _elm_lang$core$Platform_Cmd$none;
+		}
+	}();
+	return {ctor: '_Tuple2', _0: model, _1: cmd};
 };
 var _user$project$Update$ToggleMenu = function (a) {
 	return {ctor: 'ToggleMenu', _0: a};
@@ -13896,47 +13899,29 @@ var _user$project$Update$update = F2(
 			case 'LocalMsg':
 				return A2(_user$project$Update$updateLocalMsg, _p14._0, model);
 			case 'Draft':
-				return {
-					ctor: '_Tuple2',
-					_0: A2(_user$project$Update$draftPlayer, _p14._0, model),
-					_1: _user$project$Update$uploadModel(model)
-				};
+				return _user$project$Update$uploadModel(
+					A2(_user$project$Update$draftPlayer, _p14._0, model));
 			case 'FlipOrder':
-				return {
-					ctor: '_Tuple2',
-					_0: closeMenu(
+				return _user$project$Update$uploadModel(
+					closeMenu(
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
 								waitingTeams: _elm_lang$core$List$reverse(model.waitingTeams)
-							})),
-					_1: _user$project$Update$uploadModel(model)
-				};
+							})));
 			case 'UndoDraft':
-				return {
-					ctor: '_Tuple2',
-					_0: _user$project$Update$undo(model),
-					_1: _user$project$Update$uploadModel(model)
-				};
+				return _user$project$Update$uploadModel(
+					_user$project$Update$undo(model));
 			case 'RestartDraft':
-				return {
-					ctor: '_Tuple2',
-					_0: closeMenu(
-						_user$project$Update$resetDraft(model)),
-					_1: _user$project$Update$uploadModel(model)
-				};
+				return _user$project$Update$uploadModel(
+					closeMenu(
+						_user$project$Update$resetDraft(model)));
 			case 'MoveTeamUp':
-				return {
-					ctor: '_Tuple2',
-					_0: A2(_user$project$Update$moveTeamUp, _p14._0, model),
-					_1: _user$project$Update$uploadModel(model)
-				};
+				return _user$project$Update$uploadModel(
+					A2(_user$project$Update$moveTeamUp, _p14._0, model));
 			case 'MoveTeamDown':
-				return {
-					ctor: '_Tuple2',
-					_0: A2(_user$project$Update$moveTeamDown, _p14._0, model),
-					_1: _user$project$Update$uploadModel(model)
-				};
+				return _user$project$Update$uploadModel(
+					A2(_user$project$Update$moveTeamDown, _p14._0, model));
 			case 'RandomizeDraftOrder':
 				return {
 					ctor: '_Tuple2',
@@ -13947,19 +13932,13 @@ var _user$project$Update$update = F2(
 						_elm_community$random_extra$Random_List$shuffle(model.waitingTeams))
 				};
 			case 'ResetApp':
-				return {
-					ctor: '_Tuple2',
-					_0: closeMenu(
-						_user$project$Model$initModel(model.localState)),
-					_1: _user$project$Update$uploadModel(model)
-				};
+				return _user$project$Update$uploadModel(
+					closeMenu(
+						_user$project$Model$initModel(model.localState)));
 			default:
-				return {
-					ctor: '_Tuple2',
-					_0: closeMenu(
-						A2(_user$project$Update$updateDraftOrder, _p14._0, model)),
-					_1: _user$project$Update$uploadModel(model)
-				};
+				return _user$project$Update$uploadModel(
+					closeMenu(
+						A2(_user$project$Update$updateDraftOrder, _p14._0, model)));
 		}
 	});
 var _user$project$Update$ChangeView = function (a) {
